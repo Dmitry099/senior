@@ -229,23 +229,30 @@
 
 ## Mutable and Immutable Objects
 
-### Mutable objects (call by reference):
+### Mutable objects :
+## Mutable objects call by reference - it means that if mutable object pass as an argument to the function, object's reference will be passed instead of value, because value of mutable object can be changed.
+- list, dict, set, byte array https://docs.python.org/3/library/stdtypes.html#bytearray
 
-list, dict, set, byte array
+### Immutable objects :
+## Mutable objects call by value - it means that if immutable object pass as an argument to the function, object's value will be passed, because value of immutable object can't be changed.
+- int, float, complex, string
 
-### Immutable objects (pass by value):
-- int, float, complex, string, 
+- tuple (the “value” of an immutable object can’t change, but it’s constituent objects can) 
+For example:
+```python
+a = ('abc', [1,2,3])
+```
+https://stackoverflow.com/questions/46946138/in-python-class-object-is-immutable-object-but-it-can-be-modify-why
 
-- tuple (the “value” of an immutable object can’t change, but it’s constituent objects can.), 
+- frozen set [note: immutable version of set] 
 
-- frozen set [note: immutable version of set], 
 - bytes
 
 ### Features:
 
-- Python handles mutable and immutable objects differently.
+Python handles mutable and immutable objects differently:
 - Immutable are quicker to access than mutable objects.
-- Mutable objects are great to use when you need to change the size of the object, example list, dict etc.. Immutables are used when you need to ensure that the object you made will always stay the same.
+- Mutable objects are great to use when you need to change the size of the object, example list, dict etc. Immutables are used when you need to ensure that the object you made will always stay the same.
 - Immutable objects are fundamentally expensive to “change”, because doing so involves creating a copy. Changing mutable objects is cheap.
 
 ### How objects are passed to Functions
@@ -254,7 +261,47 @@ Its important for us to know difference between mutable and immutable types and 
 
 For example if a mutable object is called by reference in a function, it can change the original variable itself. 
 
-Hence to avoid this, the original variable needs to be copied to another variable. Immutable objects can be called by reference because its value cannot be changed anyways.
+```python
+a = [1, 2, 3]
+
+def func(input_list):
+    input_list[2] = 11
+    return input_list
+
+b = func(a)
+print("list a:", a)
+print("list b:", b)
+```
+
+Hence to avoid this, the original variable needs to be copied to another variable. Important to know difference between usual copy and deepcopy in this case. If you'll use standard copy and your mutable object consist another mutable object, then only reference to this object will be copied again
+
+```python
+import copy
+a = [1, 2, [1, 2]]
+b = copy.copy(a)
+b[2][0] = 11
+
+print("list a:", a)
+print("list b:", b)
+print("address of a[2]:", id(a[2]))
+print("address of b[2]:", id(b[2]))
+```
+
+However, if you'll use deep copy and your mutable object consist another mutable object, then mutable object will be fully copied
+```python
+import copy
+a = [1, 2, [1, 2]]
+b = copy.deepcopy(a)
+b[2][0] = 11
+
+print("list a:", a)
+print("list b:", b)
+
+print("address of a[2]:", id(a[2]))
+print("address of b[2]:", id(b[2]))
+```
+
+Immutable objects can be called by reference because its value cannot be changed anyway.
 
 ## Ways to execute Python code: exec, eval, ast, code, codeop, etc.
 
@@ -277,6 +324,15 @@ exec('print(dir())', globals_parameter, locals_parameter)
 ```
 ```bash
 ['dir', 'print']
+```
+In this example we see, that we can redefine `__builins__` variable and we now that __builtins__ is an alias for the dictionary of the __builtin__ module itself and this module include build in Python objects and shouldn't be changed. In other case we'll not have an opportunity to use most of Python objects. 
+
+```python
+__builtins__ = None
+a = list(1,2,3)
+```
+```bash
+TypeError: 'NoneType' object is not subscriptable
 ```
 
 The `eval(expression, globals=None, locals=None)` method parses the expression passed to this method and runs python expression (code) within the program. Returns the value of expression!
@@ -309,7 +365,26 @@ Hello
 
 In addition to compiling source code to bytecode, `compile` supports compiling abstract syntax trees (parse trees of Python code) into `code` objects; and source code into abstract syntax trees (the `ast.parse` is written in Python and just calls `compile(source, filename, mode, PyCF_ONLY_AST))`; these are used for example for modifying source code on the fly, and also for dynamic code creation, as it is often easier to handle the code as a tree of nodes instead of lines of text in complex cases.
 
+More info: https://www.mattlayman.com/blog/2018/decipher-python-ast/
+
 The `code` module provides facilities to implement read-eval-print loops in Python. Two classes and convenience functions are included which can be used to build applications which provide an **interactive interpreter prompt**.
+
+Example:
+
+```python
+
+import code
+# This command will run interactive console
+# You will have interactive console inside interactive console
+code.interact()
+```
+
+```bash
+Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08) 
+[Clang 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+```
 
 The `codeop` module provides utilities upon which the Python read-eval-print loop can be emulated, as is done in the `code` module. As a result, you probably don’t want to use the module directly; if you want to include such a loop in your program you probably want to use the code module instead.
 
@@ -317,6 +392,15 @@ The `codeop` module provides utilities upon which the Python read-eval-print loo
 
 ### Division operator
 If we are porting our code or executing python 3.x code in python 2.x, it can be dangerous if integer division changes go unnoticed (since it doesn’t raise any error). It is preferred to use the floating value (like 7.0/5 or 7/5.0) to get the expected result when porting our code. 
+
+In Python 3, / is float division
+
+In Python 2, / is integer division (assuming int inputs)
+
+In both 2 and 3, // is integer division
+
+(To get float division in Python 2 requires either of the operands be a float, either as 20. or float(20))
+
 ### `print` function
 This is the most well-known change. In this, the print keyword in Python 2.x is replaced by the print() function in Python 3.x. However, parentheses work in Python 2 if space is added after the print keyword because the interpreter evaluates it as an expression. 
 ### Unicode
@@ -325,8 +409,86 @@ In Python 2, an implicit str type is ASCII. But in Python 3.x implicit str type 
 ### `xrange`
 xrange() of Python 2.x doesn’t exist in Python 3.x. In Python 2.x, range returns a list i.e. range(3) returns [0, 1, 2] while xrange returns a xrange object i. e., xrange(3) returns iterator object which works similar to Java iterator and generates number when needed. 
 
+### Raising exceptions
+Where Python 2 accepts both notations, the ‘old’ and the ‘new’ syntax, Python 3 chokes (and raises a SyntaxError in turn) if we don’t enclose the exception argument in parentheses.
+
+Example python2.7:
+```python
+# Will work in the same way
+raise IOError, "file error"
+raise IOError("file error")
+```
+
+Example python3:
+```python
+# Will cause SyntaxError
+raise IOError, "file error"
+# Will work as expected
+raise IOError("file error")
+```
+
 ### Error Handling
 There is a small change in error handling in both versions. In python 3.x, ‘as’ keyword is required. 
+
+
+Example python2.7:
+```python
+# Will work properly
+try:
+    NameError()
+except NameError, err:
+    print err, '--> our error message'
+```
+
+Example python3:
+```python
+# Will work properly
+try:
+    NameError()
+except NameError as err:
+    print(err, '--> our error message')
+```
+
+### next() and .next()
+Since next() (.next()) is such a commonly used function (method), this is another syntax change (or rather change in implementation) that is worth mentioning: where you can use both the function and method syntax in Python 2.7.5, the next() function is all that remains in Python 3 (calling the .next() method raises an AttributeError).
+
+
+Example python2.7:
+```python
+my_generator = (letter for letter in 'abcdefg')
+
+next(my_generator)
+my_generator.next()
+```
+
+Example python3:
+```python
+my_generator = (letter for letter in 'abcdefg')
+
+next(my_generator)
+
+my_generator.next() # Will call an AttributeError
+```
+
+### for loop varaibles and the global namespace
+In Python 3.x for-loop variables don’t leak into the global namespace anymore. This goes back to a change that was made in Python 3.x and is described in What’s New In Python 3.0 as follows:
+List comprehensions no longer support the syntactic form [... for var in item1, item2, ...]. Use [... for var in (item1, item2, ...)] instead. Also note that list comprehensions have different semantics: they are closer to syntactic sugar for a generator expression inside a list() constructor, and in particular the loop control variables are no longer leaked into the surrounding scope.
+
+### Banker rounding
+Python 3 adopted the now standard way of rounding decimals when it results in a tie (.5) at the last significant digits. Now, in Python 3, decimals are rounded to the nearest even number. Although it’s an inconvenience for code portability, it’s supposedly a better way of rounding compared to rounding up as it avoids the bias towards large numbers. For more information, see the excellent Wikipedia articles and paragraphs
+
+
+Example python2.7:
+```python
+round(15.5) # result 16.0
+round(16.5) # result 17.0
+```
+
+Example python3:
+```python
+round(15.5) # result 16.0
+round(16.5) # result 16.0
+```
 
 ### `_future_` module
 The idea of the __future__ module is to help migrate to Python 3.x. 
@@ -360,6 +522,21 @@ d = defaultdict(def_value)
 ## `hashable()`
 
 An object is hashable if it has a hash value that does not change during its entire lifetime. Python has a built-in hash method ( `__hash__()` ) that can be compared to other objects. For comparing it needs `__eq__()` or `__cmp__()` method and if the hashable objects are equal then they have the same hash value. All immutable built-in objects in Python are hashable like tuples while the mutable containers like lists and dictionaries are not hashable. 
+
+Important to note! Tuple object is hashable only if it includes also hashable objects.
+As we know, tuple can include not hashable mutable objects like list and
+in this case tuple will be also not hashable (i.e. we will not have an opportunity to use it as dict key)
+
+
+```python
+di = dict()
+tu = (1,)
+di[tu] = 'a' # This will work because tu is hashable
+tu2 = (1, [2,3,4])
+di[tu2] = 'b' # This will raise TypeError: unhashable type: 'list'
+
+```
+
 
 `lambda` and user functions are hashable.
 
@@ -396,6 +573,13 @@ Weak references are used to implement caches and mappings that contain massive d
 
 Python raw string is created by prefixing a string literal with ‘r’ or ‘R’. Python raw string treats backslash (\) as a literal character. This is useful when we want to have a string that contains backslash and don’t want it to be treated as an escape character.
 
+```python
+a = r'\0 \a'
+print(a) # output is \0 \a
+b = '\0 \a'
+print(b) # output is null
+
+```
 
 ## Unicode and ASCII strings	
 
@@ -412,14 +596,27 @@ The main takeaways in Python are:
 
 Technically, in Python, an iterator is an object which implements the iterator protocol, which consist of the methods `__iter__()` and `__next__()`.
 
+https://habr.com/ru/post/337314/
+https://www.geeksforgeeks.org/python-difference-iterable-iterator/
+
 ## Generators
 Generators are iterators, a kind of iterable you can only iterate over once. Generators do not store all the values in memory, they generate the values on the fly
+
+https://wiki.python.org/moin/Generators
 
 ## yield
 `yield` is a keyword that is used like `return`, except the function will return a generator.
 To master `yield`, you must understand that when you call the function, the code you have written in the function body does not run. The function only returns the generator object, this is a bit tricky.
 
 ## method send(), throw(), next(), close()
+
+`next()` - receive value from generator.
+
+```python
+string = 'Some string'
+iterator = iter(string)
+next(iterator)
+```
 
 `send()` - sends value to generator, send(None) must be invoked at generator init.
 
@@ -450,8 +647,24 @@ def add_to_database(connection_string):
         db.close()
 ```
 
+`close()` - will stop iterator. Useful if you have some conditions to stop generator.
+
+```python
+
+def generator():
+  for n in range(10000):
+    yield n
+
+pal_gen = generator()
+for i in pal_gen:
+    if i == 5:
+        pal_gen.throw(ValueError("We don't need such"))
+```
+
+
 ## Coroutines
 Coroutines declared with the `async`/`await` syntax is the preferred way of writing asyncio applications. For example, the following snippet of code (requires Python 3.7+) prints “hello”, waits 1 second, and then prints “world”:
+
 ```python
 >>> import asyncio
 
@@ -464,6 +677,15 @@ Coroutines declared with the `async`/`await` syntax is the preferred way of writ
 hello
 world
 ```
+
+In fact, async IO is a single-threaded, single-process design: it uses cooperative multitasking.
+
+Common knowledge about asyncio and coroutines -> https://realpython.com/async-io-python/
+
+Why do we need coroutines? -> https://qna.habr.com/q/405733 and https://www.geeksforgeeks.org/coroutine-in-python/
+
+###Coroutines vs Threads
+Threading also tends to scale less elegantly than async IO, because threads are a system resource with a finite availability. Creating thousands of threads will fail on many machines, and I don’t recommend trying it in the first place. Creating thousands of async IO tasks is completely feasible.
 
 # Functions in Python	
 
@@ -512,6 +734,42 @@ def my_func():
     pass
 ```
 
+More classic way to use decorator with parameter is to add one more decorated func:
+
+```python
+
+def decarator_func(c):
+    def decorate(func):
+        def decorated(a, b, *args, **kwargs):
+            print(f'{a}, {b}, {c}')
+        return decorated
+    return decorate
+
+def okay(a, b):
+    pass
+
+okay = decarator_func(c=3)(okay)
+
+okay(a='3', b='4')
+```
+
+Just for understanding how it synthetic sugar works in real life - decorator without additional args. So, when you call a decorator without additional arguments, you call it with function in arguments and func will be saved in nonlocal namespace. That's why if you need to provide params to decorated func itself you should add one more decorated func, because you will firstly call decorator with params and secondly call decorated func inside it.
+
+```python
+
+def decarator_func(func):
+      def decorated(a, b, *args, **kwargs):
+          func(a, b)
+      return decorated
+
+def okay(a, b):
+    print(f'{a}, {b}')
+
+okay = decarator_func(okay)
+
+okay(a='3', b='4')
+```
+
 ## Decorator
 
 ```python
@@ -533,9 +791,11 @@ def check_email(user, etc):
 ## Decorator factory (passing args to decorators)
 
 ```python
+import functools
+
 def require_authorization(action):
     def decorate(f):
-        @functools.wraps(f):
+        @functools.wraps(f)
         def decorated(user, *args, **kwargs):
             if not is_allowed_to(user, action):
                 raise UserIsNotAuthorized(action, user)
@@ -549,7 +809,7 @@ def require_authorization(action):
 Preserves original name of the function
 
 ## Decorator for class
-1. Just use inheritance
+1. Just use inheritance -like if you need to override some logic, you can inherit from your class and change it :)
 2. Use decorator, that returns class
 ```python
 def addID(original_class):
@@ -570,6 +830,32 @@ class Foo:
 ```
 3. Use metaclass
 
+Additional doc info -> https://realpython.com/python-metaclasses/
+
+type is a metaclass for all classes and instance of type also type so it iherits itself.
+
+Not a trivial way how to create class:
+
+```python
+
+def f(obj):
+    print('attr =', obj.a)
+
+Foo = type('Foo', ('Bar'), {'a':3, 'attr_val': f})
+```
+where second argument of type function is <bases> specifying the parent class that Foo inherits from and third argument <dct> used for attributes of methods of class
+
+When trivial way is:
+```python
+class Bar:
+  pass
+
+class Foo(Bar):
+    a = 3
+    def attr_val(self):
+        print('attr =', self.a)
+```
+
 Indeed, metaclasses are especially useful to do black magic, and therefore complicated stuff. But by themselves, they are simple:
 
 * intercept a class creation
@@ -589,6 +875,9 @@ class UpperAttrMetaclass(type):
             for attr, v in attrs.items()
         }
         return type(clsname, bases, uppercase_attrs)
+
+class Foo2(metaclass=UpperAttrMetaclass):
+     pass
 ```
 
 The main use case for a metaclass is creating an API. A typical example of this is the Django ORM.
@@ -639,6 +928,7 @@ Introspection is an ability to determine the type of an object at runtime. Every
 Functional programming is a programming paradigm in which the primary method of computation is evaluation of pure functions. Although Python is not primarily a functional language, it’s good to be familiar with `lambda`, `map()`, `filter()`, and `reduce()` because they can help you write concise, high-level, parallelizable code. You’ll also see them in code that others have written.
 
 ```python
+import functools
 list(
      map(
          (lambda a, b, c: a + b + c),
@@ -648,7 +938,7 @@ list(
      )
 )
 list(filter(lambda s: s.isupper(), ["cat", "Cat", "CAT", "dog", "Dog", "DOG", "emu", "Emu", "EMU"]))
-reduce(lambda x, y: x + y, [1, 2, 3, 4, 5], 100)  # (100 + 1 + 2 + 3 + 4 + 5), 100 is initial value
+functools.reduce(lambda x, y: x + y, [1, 2, 3, 4, 5], 100)  # (100 + 1 + 2 + 3 + 4 + 5), 100 is initial value
 ```
 
 
@@ -706,6 +996,33 @@ Similarly to global names, nonlocal names can be accessed from inner functions, 
 
 The nonlocal statement consists of the nonlocal keyword followed by one or more names separated by commas. These names will refer to the same names in the enclosing Python scope. 
 
+
+Just interesting moment:
+
+This code will work without errors, because before first print we define that variable is nonlocal and in this case a attribute of function ab will be changed from 4 to 10
+```python
+def ab():
+    a = 4
+    def ba():
+        nonlocal a
+        print(a)
+        a = 10
+        print(a)
+    ba()
+```
+
+This code will finish with error UnboundLocalError: local variable 'a' referenced before assignment, because we're trying to get local variable a before assignment in local scope. This is because LEGB rule which means that interpretator will try to find variable a in local scope firstly and in our case it finds a variable at the next string.
+
+```python
+def ab():
+    a = 4
+    def ba():
+        print(a)
+        a = 10
+        print(a)
+    ba()
+```
+
 ## Scopes and nested functions, closures
 
 This technique by which some data (hello in this case) gets attached to the code is called closure in Python.
@@ -761,30 +1078,279 @@ while True:
 ## SOLID
 In software engineering, SOLID is a mnemonic acronym for five design principles intended to make software designs more understandable, flexible, and maintainable. The principles are a subset of many principles promoted by American software engineer and instructor Robert C. Martin, first introduced in his 2000 paper Design Principles and Design Patterns.
 
-The SOLID ideas are
+The SOLID ideas are:
 
-- The single-responsibility principle: "There should never be more than one reason for a class to change." In other words, every class should have only one responsibility.
-- The open–closed principle: "Software entities ... should be open for extension, but closed for modification."
-- The Liskov substitution principle: "Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it." See also design by contract.
-- The interface segregation principle: "Many client-specific interfaces are better than one general-purpose interface."
-- The dependency inversion principle: "Depend upon abstractions, not concretions."
+### The single-responsibility principle: 
+"There should never be more than one reason for a class to change." In other words, every class should have only one responsibility. Too often you see a piece of code that takes care of an entire process all at once. I.e., A function that loads data, modifies and, plots them, all before returning its result.
+
+Bad pattern (one function to do a lot of things):
+
+```python
+import numpy as np
+
+def math_operations(list_):
+    # Compute Average
+    print(f"the mean is {np.mean(list_)}")
+    # Compute Max
+    print(f"the max is {np.max(list_)}") 
+
+math_operations(list_ = [1,2,3,4,5])
+# the mean is 3.0
+# the max is 5
+```
+
+Good pattern (one function - one concrete action - one responsibility):
+ ```python
+def get_mean(list_):
+    '''Compute Mean'''
+    print(f"the mean is {np.mean(list_)}") 
+
+def get_max(list_):
+    '''Compute Max'''
+    print(f"the max is {np.max(list_)}") 
+
+def main(list_): 
+    # Compute Average
+    get_mean(list_)
+    # Compute Max
+    get_max(list_)
+
+main([1,2,3,4,5])
+# the mean is 3.0
+# the max is 5
+```
+### The open–closed principle: 
+"Software entities ... should be open for extension, but closed for modification." This does not mean that you cannot change your code when the code premises needs to be modified, but that if you need to add new functions similar to the one present, you should not require to change other parts of the code.To clarify this point let’s refer to the example we saw earlier. If we wanted to add new functionality, for example, compute the median, we should have created a new method function and add its invocation to “main”. That would have added an extension but also modified the main. We can solve this by turning all the functions we wrote into subclasses of a class. In this case, I have created an abstract class called “Operations” with an abstract method “get_operation”. (Abstract classes are generally an advanced topic. If you don’t know what an abstract class is, you can run the following code even without).
+
+```python
+import numpy as np
+from abc import ABC, abstractmethod
+
+class Operations(ABC):
+    '''Operations'''
+    @abstractmethod
+    @staticmethod
+    def operation(numbers):
+        pass
+
+class Mean(Operations):
+    '''Compute Mean'''
+    @staticmethod
+    def operation(numbers):
+        print(f"The mean is {np.mean(numbers)}") 
+
+class Max(Operations):
+    '''Compute Max'''
+    @staticmethod
+    def operation(numbers):
+        print(f"The max is {np.max(numbers)}") 
+
+class Main:
+    '''Main'''
+    @abstractmethod
+    def get_operations(self, numbers):
+        # __subclasses__ will found all classes inheriting from Operations
+        for operation in Operations.__subclasses__():
+            operation.operation(numbers)
+
+
+if __name__ == "__main__":
+    Main().get_operations([1,2,3,4,5])
+# The mean is 3.0
+# The max is 5
+```
+If now we want to add a new operation e.g.: median, we will only need to add a class “Median” inheriting from the class “Operations”. The newly formed sub-class will be immediately picked up by __subclasses__() and no modification in any other part of the code needs to happen.
+###The Liskov substitution principle:
+"Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it." See also design by contract.Alternatively, this can be expressed as “Derived classes must be substitutable for their base classes”. In (maybe) simpler words, if a subclass redefines a function also present in the parent class, a client-user should not be noticing any difference in behaviour, and it is a substitute for the base class. For example, if you are using a function and your colleague change the base class, you should not notice any difference in the function that you are using. If in a subclass, you redefine a function that is also present in the base class, the two functions ought to have the same behaviour. This, though, does not mean that they must be mandatorily equal, but that the user, should expect that the same type of result, given the same input.
+###The interface segregation principle:
+"Many client-specific interfaces are better than one general-purpose interface." In the contest of classes, an interface is considered, all the methods and properties “exposed”, thus, everything that a user can interact with that belongs to that class. In this sense, the IS principles tell us that a class should only have the interface needed (SRP) and avoid methods that won’t work or that have no reason to be part of that class. This problem arises, primarily, when, a subclass inherits methods from a base class that it does not need.
+Let’s see an example:
+
+```python
+import numpy as np
+from abc import ABC
+
+class Mammals(ABC):
+
+    def swim(self) -> bool:
+        print("Can Swim") 
+
+    def walk(self) -> bool:
+        print("Can Walk") 
+
+class Human(Mammals):
+    def swim(self):
+        return print("Humans can swim") 
+
+    def walk(self):
+        return print("Humans can walk") 
+
+class Whale(Mammals):
+    def swim(self):
+        return print("Whales can swim")
+
+
+Human().swim() # Humans can swim
+Human().walk() # Humans can walk
+
+Whale().swim() # Whales can swim
+Whale().walk() # Can Walk
+```
+For this example, we have got the abstract class “Mammals” that has two abstract methods: “walk” and “swim”. These two elements will belong to the sub-class “Human”, whereas only “swim” will belong to the subclass “Whale”. The sub-class whale can still invoke the method “walk” but it shouldn’t, and we must avoid it. The way suggested by ISP is to create more client-specific interfaces rather than one general-purpose interface. So, our code example becomes:
+
+```python
+from abc import ABC
+
+class Walker(ABC):
+
+  def walk(self) -> bool:
+    return print("Can Walk") 
+
+class Swimmer(ABC):
+
+  def swim(self) -> bool:
+    return print("Can Swim") 
+
+class Human(Walker, Swimmer):
+  
+  def walk(self):
+    return print("Humans can walk") 
+
+  def swim(self):
+    return print("Humans can swim") 
+
+class Whale(Swimmer):
+
+  def swim(self):
+    return print("Whales can swim") 
+
+if __name__ == "__main__":
+  Human().walk() # Humans can walk
+  Human().swim() # Humans can swim
+
+  Whale().swim() # Whales can swim
+  Whale().walk() #Unresolved reference for walk attribute! And it's correct!
+```
+###The dependency inversion principle:
+"Depend upon abstractions, not concretions." Essentially, don't depend on concrete classes, depend upon interfaces.
+Taking an example of a PageLoader class that uses a MySqlConnection class to load pages from a database we might create the classes so that the connection class is passed to the constructor of the PageLoader class.
+
+```python
+class MySqlConnection():
+    def connect(self):
+        pass
+
+class PageLoader():
+    def __init__(self, mysql_connection: MySqlConnection):
+        self._mysql_connection = mysql_connection
+```
+This structure means that we are essentially stuck with using MySQL for our database layer. What happens if we want to swap this out for a different database adaptor? We could extend the MySqlConnection class in order to create a connection to Memcache or something, but that would contravene the Liskov Substitution principle. Chances are that alternate database managers might be used to load the pages so we need to find a way to do this.The solution here is to create an interface called DbConnectionInterface and then implement this interface in the MySqlConnection class. Then, instead of relying on a MySqlConnection object being passed to the PageLoader class, we instead rely on any class that implements the DbConnectionInterface interface.
+
+```python
+class DbConnectionMeta(type):
+    def __instancecheck__(self, instance):
+        return self.__subclasscheck__(type(instance))
+
+    def __subclasscheck__(self, subclass):
+        return (hasattr(subclass, 'connect') and callable(subclass.connect))
+
+class DbConnectionInterface(metaclass=DbConnectionMeta):
+    pass
+
+
+class MySqlConnection(DbConnectionInterface):
+    def connect(self):
+        pass
+
+class PageLoader():
+    def __init__(self, db_connection: DbConnectionInterface):
+        self._db_connection = db_connection
+```
+With this in place we can now create a MemcacheConnection class and as long as it implements the DbConnectionInterface then we can use it in the PageLoader class to load pages. When thinking about interfaces instead of classes it forces us to move that specific domain code out of our PageLoader class and into the MySqlConnection class.
 
 The SOLID acronym was introduced later, around 2004, by Michael Feathers.
 
+If any question, read next -> https://www.hashbangcode.com/article/solid-principles-python
+
 ## The four basics of object-oriented programming
 
-- Encapsulation - binding the data and functions which operate on that data into a single unit, the class
+### Encapsulation
+Binding the data and functions which operate on that data into a single unit, the class.This prevents data from being accidentally modified by limiting direct access to variables and methods.An object’s variable can only be updated by an object’s method to avoid unintentional changes. Private variables are variables of this type.
 
-- Abstraction - treating a system as a “black box,” where it’s not important to understand the gory inner workings in order to reap the benefits of using it.
+Example of encapsulation:
 
-- Inheritance - if a class inherits from another class, it automatically obtains a lot of the same functionality and properties from that class and can be extended to contain separate code and data. A nice feature of inheritance is that it often leads to good code reuse since a parent class’ functions don’t need to be re-defined in any of its child classes.
+```python
+class Alpha:
+    def __init__(self):
+        self.p = "Encapsulation"
+        self.__q = "Encapsulation"
 
-- Polymorphism - Because derived objects share the same interface as their parents, the calling code can call any function in that class’ interface. At run-time, the appropriate function will be called depending on the type of object passed leading to possibly different behaviors.
+class Derived(Alpha):
+    def __init__(self):
+        Alpha.__init__(self)
+        self.__new_one = 'Okay'
+        print("Base class: ")
+        # to use inherited attribute, we should call it in different way,
+        # because when we inherit such attributes, we get it
+        # with another naming 
+        print(self._Alpha__q)
+        
+enc = Derived()
+print(enc.p)
+# To use __q attribute of inherited Alpha class and __new_one attribute, 
+# we should call it in different way, not like usually by its name. 
+# It calls pseudo private attribute.
+print(enc._Alpha__q)  
+print(enc._Derived__new_one) 
+```
 
+### Abstraction
+Treating a system as a “black box,” where it’s not important to understand the gory inner workings in order to reap the benefits of using it. It hides the unnecessary code details from the user. Also, when we do not want to give out sensitive parts of our code implementation and this is where data abstraction came.
+
+### Inheritance
+If a class inherits from another class, it automatically obtains a lot of the same functionality and properties from that class and can be extended to contain separate code and data. A nice feature of inheritance is that it often leads to good code reuse since a parent class’ functions don’t need to be re-defined in any of its child classes.
+
+### Polymorphism 
+Because derived objects share the same interface as their parents, the calling code can call any function in that class’ interface. At run-time, the appropriate function will be called depending on the type of object passed leading to possibly different behaviors.
+
+Simple example of polymorphism when appropriate function will be called depending on the type of object passed:
+
+```python
+class Bird:
+   
+    def intro(self):
+        print("There are many types of birds.")
+ 
+    def flight(self):
+        print("Most of the birds can fly but some cannot.")
+ 
+class Sparrow(Bird):
+   
+    def flight(self):
+        print("Sparrows can fly.")
+ 
+class Ostrich(Bird):
+ 
+    def flight(self):
+        print("Ostriches cannot fly.")
+ 
+obj_bird = Bird()
+obj_spr = Sparrow()
+obj_ost = Ostrich()
+ 
+obj_bird.intro()
+obj_bird.flight()
+ 
+obj_spr.intro()
+obj_spr.flight()
+ 
+obj_ost.intro()
+obj_ost.flight()
+```
 
 ## abstract base class
 
-They make sure that derived classes implement methods and properties dictated in the abstract base class.
+They make sure that derived (child) classes implement methods and properties dictated in the abstract base class.
 Abstract base classes separate the interface from the implementation. They define generic methods and properties that must be used in subclasses. Implementation is handled by the concrete subclasses where we can create objects that can handle tasks.
 They help to avoid bugs and make the class hierarchies easier to maintain by providing a strict recipe to follow for creating subclasses.
 
@@ -802,6 +1368,52 @@ class AbstactClassCSV(metaclass = ABCMeta):  # or just inherits from ABC, helper
        pass  
 ```
 
+Useful info: if we will create parent class without inheritance from ABCMeta abstract class or without ABC class, then defined inside parent class abstract functionality will not work as expected.
+
+Example of creating abstraction without inheritance from ABC:
+
+```python
+from abc import abstractmethod
+
+class Alpha:
+    @abstractmethod
+    def new_one(self):
+        pass
+
+
+class Derived(Alpha):
+    def __init__(self):
+        Alpha.__init__(self)
+        self.__new_one = 'Okay'
+
+# This will work without any mistakes, however Pycharm will show you that you
+# should implement all abstract methods
+enc = Derived()
+```
+
+Example of creating abstraction with inheritance from ABC:
+```python
+import abc
+from abc import abstractmethod
+
+class Alpha(abc.ABC):
+
+    @abstractmethod
+    def new_one(self):
+        pass
+
+
+class Derived(Alpha):
+    def __init__(self):
+        Alpha.__init__(self)
+        self.__new_one = 'Okay'
+
+# This will work as expected with mistake:
+# TypeError: Can't instantiate abstract class Derived with abstract methods new_one
+# Pycharm also shows you that you should implement all abstract methods
+enc = Derived()
+```
+
 ## getattr(), setattr()
 
 `hasattr(object, name)` function:
@@ -812,15 +1424,40 @@ Determines whether an object has a name attribute or a name method, returns a bo
 
 Gets the property or method of the object, prints it if it exists, or prints the default value if it does not exist, which is optional.
 
+Sometimes it's good to use then you want to call some method by it's name which should be defined in runtime.
+
+Example
+```python
+class A:
+
+    def hello(self):
+        print('Hello')
+    
+    def goodbye(self):
+        print('Goodbye')
+
+a = A()
+
+for i in range(2):
+    if i % 2 == 0:
+        getattr(a, 'hello')()
+    else:
+        getattr(a, 'goodbye')()
+```
+
 `setattr(object, name, values)` function:
 
 Assign a value to an object's property. If the property does not exist, create it before assigning it.
 
 ## `__getattr__`, `__setattr__`, `__delattr__`
+Dunder methods `__getattr__`, `__setattr__`, `__delattr__` can be used to provide some additional functionality before get, set or delete any attributes to class.
+
+Note that __setattr__ dunder method will work only for attributes, which will be added after class creation, not inside it (through setattr function or directly to class instance), so already defined in class attributes will not be changed
 
 ```python
 >>> # this example uses __setattr__ to dynamically change attribute value to uppercase
 >>> class Frob:
+...     a = 'bye'  
 ...     def __setattr__(self, name, value):
 ...         self.__dict__[name] = value.upper()
 ...
@@ -828,6 +1465,8 @@ Assign a value to an object's property. If the property does not exist, create i
 >>> f.bamf = "bamf"
 >>> f.bamf
 'BAMF'
+>>> f.a
+'bye'
 ```
 
 Note that if the attribute is found through the normal mechanism, `__getattr__()` is not called. (This is an intentional asymmetry between `__getattr__()` and `__setattr__()`.) This is done both for efficiency reasons and because otherwise `__getattr__()` would have no way to access other attributes of the instance.
@@ -854,7 +1493,7 @@ If the class also defines `__getattr__()`, the latter will not be called unless 
 ```python
 >>> class Frob(object):
 ...     def __getattribute__(self, name):
-...         print "getting `{}`".format(str(name))
+...         print("getting `{}`".format(str(name)))
 ...         object.__getattribute__(self, name)
 ...
 >>> f = Frob()
@@ -863,6 +1502,46 @@ If the class also defines `__getattr__()`, the latter will not be called unless 
 getting `bamf`
 ```
 
+
+Summarize __getattr__ and __gettattribute__ dunder methods:
+
+```python
+class Yeah(object):
+    def __init__(self, name):
+        self.name = name
+
+    # Gets called when an attribute is accessed
+    def __getattribute__(self, item):
+        print('__getattribute__ ', item)
+        # Calling the super class to avoid recursion
+        return super(Yeah, self).__getattribute__(item)
+
+    # Gets called when the item is not found via __getattribute__
+    def __getattr__(self, item):
+        print('__getattr__ ', item)
+        return super(Yeah, self).__setattr__(item, 'orphan')
+
+>>> y1 = Yeah('yes')
+>>> y1.name
+... __getattribute__  name
+... 'yes'
+>>> y1.foo
+... __getattribute__  foo
+... __getattr__  foo
+>>> y1.foo
+... __getattribute__  foo
+... 'orphan'
+>>> y1.goo
+... __getattribute__  goo
+... __getattr__  goo
+>>> y1.__dict__
+... __getattribute__  __dict__
+... {'__members__': 'orphan',
+...  '__methods__': 'orphan',
+...  'foo': 'orphan',
+...  'goo': 'orphan',
+...  'name': 'yes'}
+```
 ## Name mangling
 
 In name mangling process any identifier with two leading underscore and one trailing underscore is textually replaced with `_classname__identifier` where classname is the name of the current class. It means that any identifier of the form `__geek` (at least two leading underscores or at most one trailing underscore) is replaced with `_classname__geek`, where classname is the current class name with leading underscore(s) stripped.
@@ -908,9 +1587,9 @@ del p.name
 
 - `__init__` The task of constructors is to initialize(assign values) to the data members of the class when an object of class is created.
 - `repr()` The repr() function returns a printable representation of the given object.
-- The `__str__` method in Python represents the class objects as a string – it can be used for classes. The __str__ method should be defined in a way that is easy to read and outputs all the members of the class. This method is also used as a debugging tool when the members of a class need to be checked.
+- The `__str__` method in Python represents the class objects as a string – it can be used for classes. The __str__ method should be defined in a way that is easy to read and outputs all the members of the class. This method is also used as a debugging tool when the members of a class need to be checked. One useful moment - when you run print function __str__ method will be called, when you run repr function - __repr__ method will be called.
 - `__cmp__` is no longer used.
-- `__mew__` Whenever a class is instantiated `__new__` and `__init__` methods are called. `__new__` method will be called when an object is created and `__init__` method will be called to initialize the object.
+- `__new__` Whenever a class is instantiated `__new__` and `__init__` methods are called. `__new__` method will be called when an object is created and `__init__` method will be called to initialize the object.
 ```python
 class A(object):
     def __new__(cls):
@@ -926,7 +1605,7 @@ Output:
 - Init is called
 
 - `__del__` The `__del__()` method is a known as a destructor method in Python. It is called when all references to the object have been deleted i.e when an object is garbage collected. Note : A reference to objects is also deleted when the object goes out of reference or when the program ends
-- `__hash__()`
+- `__hash__()` By default, the __hash__ uses the object’s identity and the __eq__ returns True if two objects are the same. To override this default behavior, you can implement the __eq__ and __hash__. More info -> https://www.pythontutorial.net/python-oop/python-__hash__/
 ```python
 class A(object):
 
@@ -946,7 +1625,7 @@ class A(object):
 
 ## Rich comparison methods
 
-`__lt__`, `__gt__`, `__le__`, `__ge__`, `__eq__`, and `__ne__`
+`__lt__` (x < y), `__gt__` (x > y), `__le__` (x <= y), `__ge__` (x >= y), `__eq__` (x == y), and `__ne__` (x != y)
 
 ```python
 def __lt__(self, other):
@@ -1048,8 +1727,142 @@ Using the tentative new MRO algorithm, the MRO for these classes would be Z, X, 
 
 Thus, in Python 2.3, we abandoned my home-grown 2.2 MRO algorithm in favor of the academically vetted C3 algorithm. One outcome of this is that Python will now reject any inheritance hierarchy that has an inconsistent ordering of base classes. For instance, in the previous example, there is an ordering conflict between class X and Y. For class X, there is a rule that says class A should be checked before class B. However, for class Y, the rule says that class B should be checked before A. In isolation, this discrepancy is fine, but if X and Y are ever combined together in the same inheritance hierarchy for another class (such as in the definition of class Z), that class will be rejected by the C3 algorithm. This, of course, matches the Zen of Python's "errors should never pass silently" rule.
 
-**In Python, the MRO is from bottom to top and left to right. This means that, first, the method is searched in the class of the object. If it’s not found, it is searched in the immediate super class. In the case of multiple super classes, it is searched left to right, in the order by which was declared by the developer. For example:**
+More info --> https://makina-corpus.com/python/python-tutorial-understanding-python-mro-class-search-path
 
+**In Python, the MRO is from bottom to top and left to right. This means that, first, the method is searched in the class of the object. If it’s not found, it is searched in the immediate super class. In the case of multiple super classes, it is searched left to right, in the order by which was declared by the developer. Moreover, you can use dunder method __mro__ of your class, to understand, how it works. For example:**
+
+```python
+class A(object): pass
+class B(object): pass
+class C(object): pass
+class D(A, B): pass
+print(D.__mro__)
+```
+
+A near exact, but not completly exact, as we will see at the end of the article, definition of the new classes algorithm is that it is the same than the old one, except with this difference : each time a class is found in built search path, Python asked the question « Is it a good head ? » and if not, it removes the class from the final search path.
+So, what is a « good head »? A class is said as being a « good head » if there is no other class in the tail of the search path which inherits from it. In this case it is more natural to use the method defined by its derived class.
+
+The search path for example below is (tree routing without simplification) is D, B, A, C, A. Once built, Python tries to remove duplicated entries using the "good head" question. D and B are good head as there is no derived class in the tail of the path after they position which inherits from them.
+When it is the first class A occurence, Python ask to class A : « Are you a good Head » ? And the answer is « No, I've have not been very kind today, I've tried to stole the place of my child class C which inherits from me and is in the the tail of the search path after me ». So Python removes A from the search path at this point which becomes D, B, C, A.
+
+What's why you should understand that rule from bottom to top and left to right makes in next way:
+
+1) Trying to find in your class
+2) Trying to find in superclass.
+3) If there are several superclasses logic can be next: if both of superclasses have same parent in the same order, then superclases will be inspected from left to right; if both of superclasses doesn't have same parent when we will got to parent classes of left superclass
+
+Several examples for better understanding:
+
+```python
+class A(object):
+    def display(self):
+        print('A')
+
+
+class B(object):
+    def display(self):
+        print('B')
+
+
+class C(object):
+    def display(self):
+        print('C')
+
+
+class D(object):
+    def display(self):
+        print('D')
+
+
+class X(A, D): pass
+
+
+class Y(B, C):
+    def display(self):
+        print('Y')
+
+
+class Z(X, Y): pass
+
+z = Z()
+print(Z.__mro__) #(<class '__main__.Z'>, <class '__main__.X'>, <class '__main__.A'>, <class '__main__.D'>, <class '__main__.Y'>, <class '__main__.B'>, <class '__main__.C'>, <class 'object'>)
+z.display() # answer is A not Y! Because X and Y doesn't have equal parent superclasses and after insect X class we will go to A class
+```
+
+
+```python
+class A(object):
+    def display(self):
+        print('A')
+
+
+class B(object):
+    def display(self):
+        print('B')
+
+
+class C(object):
+    def display(self):
+        print('C')
+
+
+class D(object):
+    def display(self):
+        print('D')
+
+
+class X(A, D): pass
+
+
+class Y(A, C):
+    def display(self):
+        print('Y')
+
+
+class Z(X, Y): pass
+
+z = Z()
+print(Z.__mro__) #(<class '__main__.Z'>, <class '__main__.X'>, <class '__main__.Y'>, <class '__main__.A'>, <class '__main__.D'>, <class '__main__.C'>, <class 'object'>)
+z.display() # answer is Y! Because in this case X and Y class have equal parent A and this parent is first to watch between them
+```
+
+```python
+class A(object):
+    def display(self):
+        print('A')
+
+
+class B(object):
+    def display(self):
+        print('B')
+
+
+class C(object):
+    def display(self):
+        print('C')
+
+
+class D(B):
+    def display(self):
+        print('D')
+
+
+class X(D, A): pass
+
+
+class Y(C, A):
+    def display(self):
+        print('Y')
+
+
+class Z(X, Y): pass
+
+z = Z()
+print(Z.__mro__) # (<class '__main__.Z'>, <class '__main__.X'>, <class '__main__.D'>, <class '__main__.B'>, <class '__main__.Y'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>)
+z.display() # The answer id D! Because in this case X and Y class have equal parent A, but this parent is not in the first place of hierarchy.
+```
+
+So, MRO is something similar to depth-first left to right, only difference that we use depth first only if several subclasses of our class doesn't have similar parent at the beggining of their parent superclasses, otherwise not depth-first but left to right.
 ## Mixins
 
 A mixin is a special kind of multiple inheritance. There are two main situations where mixins are used:
@@ -1131,9 +1944,9 @@ Serious software development calls for performance optimization. When you start 
 
 You can do several things with trace:
 
-1. Produce a code coverage report to see which lines are run or skipped over (`python3 -m trace –count trace_example/main.py`).
-2. Report on the relationships between functions that call one other (`python3 -m trace –listfuncs trace_example/main.py | grep -v importlib`).
-3. Track which function is the caller (`python3 -m trace –listfuncs –trackcalls trace_example/main.py | grep -v importlib`).
+1. Produce a code coverage report to see which lines are run or skipped over (`python3 -m trace –-count trace_example/main.py`).
+2. Report on the relationships between functions that call one other (`python3 -m trace –-listfuncs trace_example/main.py | grep -v importlib`).
+3. Track which function is the caller (`python3 -m trace –listfuncs –-trackcalls trace_example/main.py | grep -v importlib`).
 
 ### `faulthandler` module
 
@@ -1478,6 +2291,8 @@ Python developers have tried to address memory leaks through the addition of fea
 
 However, some unreferenced objects may pass through the garbage collector unharmed, resulting in memory leaks.
 
+More info --> https://www.geeksforgeeks.org/garbage-collection-python/
+
 # Threading and multiprocessing in Python	
 ## GIL (Definition, algorithms in 2.x and 3.x)
 
@@ -1533,7 +2348,6 @@ Better:
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
-from time import sleep
  
 values = [3,4,5,6]
  
@@ -1725,6 +2539,8 @@ packaging_tutorial/
 │       └── example.py
 └── tests/
 ```
+
+good tutorial to distribute package -> https://packaging.python.org/en/latest/tutorials/packaging-projects/#packaging-python-projects
 
 ## Documentation autogeneration: sphinx, pydoc, etc.
 
@@ -2602,7 +3418,7 @@ There are pros and cons for each type of virtualized system. If you want full is
 
 Extreme Programming (XP) is an agile software development framework that aims to produce higher quality software, and higher quality of life for the development team. XP is the most specific of the agile frameworks regarding appropriate engineering practices for software development.
 
-The five values of XP are communication, simplicity, feedback, courage, and respectю
+The five values of XP are communication, simplicity, feedback, courage, and respect.
 
 - The Planning Game
 - Small Releases
@@ -2621,11 +3437,17 @@ The five values of XP are communication, simplicity, feedback, courage, and resp
 # PostgreSQL Questions
 
 ## What is a non-clustered index?
-A non-clustered index is a type of index where the order of the rows does not match the order of the actual data.
+A non-clustered index is a type of index where: 
+1) the order of the rows does not match the order of the actual data;
+2) A non-clustered index structure exists as a separate object in the database (not as a part of table in clustered index)
+3) This type of index does not alter and/or prescribe any sort of ordering of rows in the table;
+4) In other words, rows of the table are not really stored in any sorted order. Such types of tables are also known as Heap Tables in the database terminology;
+
+In PosrgreSQL all indexes are non-clustered  and info about clustered and non-clustered in comments-> https://www.quora.com/Is-a-primary-key-index-in-PostgreSQL-automatically-clustered-If-not-is-it-recommended-to-let-it-always-be-clustered
 
 ## Can you store binary data in PostgreSQL?
 
-There are two ways to store the binary data in PostgreSQL, either by using bytes or the large object feature.
+There are two ways to store the binary data in PostgreSQL, either by using bytes or the large object feature (JSONB).
 
 ## Explain functions in PostgreSQL
 Functions in PostgreSQL are also known as stored procedures. They are used to store commands, declarations, assignments, etc. This makes it easy to perform operations that would generally take thousands of lines of code to write.
@@ -2638,17 +3460,25 @@ Column data types in PostgreSQL are changed using the ALTER TABLE statement comb
 ## Explain Write-Ahead Logging
 This feature provides a log of a database in case of a database crash by logging changes before any changes or updates are made to the database.
 
+More info -> https://habr.com/ru/company/postgrespro/blog/459250/
+
 ## What is multi-version concurrency control in PostgreSQL?
 It is a method commonly used to provide concurrent access to the database, and in programming languages to implement transactional memory. It avoids unnecessary locking of the database - removing the time lag for the user to log into the database.
 
+More info -> https://www.postgresql.org/docs/current/mvcc-intro.html
+
 ## What do you understand by a partitioned table in PostgreSQL?
 In PostgreSQL, a partitioned table is a logical structure used to split a large table into smaller pieces. These small pieces of the tables are called partitions.
+
+More info -> https://www.postgresql.org/docs/current/ddl-partitioning.html
 
 ## What are the Indices of PostgreSQL?
 Indices of PostgreSQL are inbuilt functions or methods such as GIST Indices, hash table, and B-tree (Binary tree). The user uses these to scan the index in a backward manner. PostgreSQL also facilitates their users to define their indices of PostgreSQL.
 
 ## What is the use of indexes in PostgreSQL?
 In PostgreSQL, indexes are used by the search engine to enhance the speed of data retrieval.
+
+More info -> https://habr.com/ru/company/postgrespro/blog/326096/
 
 ## What do we call database callback functions? What is its purpose?
 The database callback functions are known as PostgreSQL Triggers. The PostgreSQL Triggers are performed or invoked automatically whenever a specified database event occurs.
@@ -2658,6 +3488,8 @@ A Cluster index is used to sort table data rows according to their key values.
 
 ## What are the different properties of a transaction in PostgreSQL?
 PostgreSQL supports ACID properties. This is commonly referred to by the acronym named ACID. It means the properties of a transaction in PostgreSQL include Atomicity, Consistency, Isolation, and Durability.
+
+More info -> https://habr.com/ru/post/555920/
 
 ## Which commands are used to control transactions in PostgreSQL?
 The following commands are used to control transactions in PostgreSQL:
@@ -2675,8 +3507,13 @@ The Write-Ahead Logging feature is used to enhance the reliability of the databa
 There are four levels of transaction isolation used in SQL standard regarding three phenomena that must be prevented between concurrent transactions in PostgreSQL. These three unwanted phenomena are as follows:
 
 - Dirty read: A transaction is called a dirty read when it reads data written by a concurrent uncommitted transaction.
+  ![img.png](img.png)
 - Non-repeatable read: It specifies a transaction that re-reads the data it has previously read and then finds another transaction that has already modified it.
+  ![img_1.png](img_1.png)
 - Phantom read: It specifies a transaction that re-executes a query, returning a set of rows that satisfy a search condition and then finds that the set of rows satisfying the condition has changed due to another recently-committed transaction.
+  ![img_2.png](img_2.png)
+- serialization anomaly: The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.
+
 
 # Common Questions
 
@@ -2687,7 +3524,7 @@ There are four levels of transaction isolation used in SQL standard regarding th
 - Example when you left feature not completed
 - Your subordinate late for several tasks. What to do?
 - What to do if task is blocked?
-- Where Agile is not suitable?
+- Where Agile is not suitable? -> https://hygger.io/blog/when-not-to-use-agile/
 - Imagine if your teammate was responsible for developing a key feature and he failed. How would you handle this situation with the customer who will have to shift the release due to it?
 - Let's assume you're TL and have subordinate who constantly challenges your architectural decisions. What would be your actions?  
 - There is a team member who doesn't want to write documentation. How you would encourage the person to do (his/her) duty? 
@@ -2758,7 +3595,7 @@ What will be your actions in case one of team members (or both of them) are out 
 
 ## Software Developing Methodologies
 - I saw that you learnt about Agile processes. What are the main differences between Kanban and Scrum? How to utilize the technics on your current project? Do you have any improvement idea?
-- Could you please compare Scrum and Kanban. How would you select methodology for green field project?
+- Could you please compare Scrum and Kanban. How would you select methodology for green field project? -> https://www.atlassian.com/agile/kanban/kanban-vs-scrum
 - Please compare Scrum and Kanban. Why would you choose one over the other? 
 - What is the purpose of the Sprint Retrospective? Who can participate in it? 
 - How do you understand one of the Agile principles 'Simplicity - the art of minimizing the amount of work done -- is essential.' 
