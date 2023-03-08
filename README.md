@@ -557,6 +557,16 @@ bob = "bob"
 
 This works because the variable does not have a type; it can name any object. After `bob = 1`, you'll find that `type(bob)` returns `int`, but after `bob = "bob"`, it returns `str`.
 
+Type hinting is a formal solution to statically indicate the type of a value within your Python code. It was specified in PEP 484 and introduced in Python 3.5.
+Here’s an example of adding type information to a function. You annotate the arguments and the return value:
+```python
+
+def greet(name: str) -> str:
+    return "Hello, " + name
+```
+The name: str syntax indicates the name argument should be of type str. The -> syntax indicates the greet() function will return a string.
+
+
 ## Frozenset
 The `frozenset()` function returns an immutable frozenset object initialized with elements from the given iterable.
 
@@ -882,6 +892,61 @@ class Foo2(metaclass=UpperAttrMetaclass):
 
 The main use case for a metaclass is creating an API. A typical example of this is the Django ORM.
 
+## total_ordering, single_dispatch
+### total_ordering decorator
+Let’s imagine that we need to compare class objects. Hence, we have to provide the implementations of all the comparison ordering methods of the class. This requires a bit of effort.
+However, we can simplify the process with the total_ordering descriptor. We can define any one of the comparison ordering methods, and the decorator supplies the rest of the methods. The class also must provide an __eq__() method.
+Let’s consider we supply the __lt__ and __eq__ methods. The decorator supplies the rest of the comparison methods i.e., __le__(), __gt__(), and __ge__().
+```python
+
+from functools import total_ordering
+
+@total_ordering
+class Person:
+
+    def __init__(self, age):
+        self.age = age
+
+    def __lt__(self, other):
+        return self.age < other.age
+    
+    def __eq__(self, other):
+        return self.age == other.age
+
+person1 = Person(10)
+person2 = Person(20)
+print("Person(10) > Person(20) ? ", person1 > person2)
+print("Person(10) == Person(20) ? ", person1 == person2)
+print("Person(10) >= Person(20) ? ", person1 >= person2)
+print("Person(10) < Person(20) ? ", person1 < person2)
+print("Person(10) <= Person(20) ? ", person1 <= person2)
+```
+
+### singledispatchmethod decorator
+The singledispatchmethod decorator is used for method classes overloading. The functionality is similar to the singledispatch decorator. However, the dispatch is based on the type of the first non-self or non-cls argument. This allows for the overloading of both the method and the class method.
+```python
+from functools import singledispatchmethod
+
+class Sum:
+
+    @singledispatchmethod
+    def sumMethod(self, arg1, arg2):
+        print("Default implementation with arg1 = %s and arg2 = %s" % (arg1, arg2))
+
+    @sumMethod.register
+    def _(self, arg1: int, arg2: int):
+        print("Sum with arg1 as integer. %s + %s = %s" % (arg1, arg2, arg1 + arg2))
+
+    @sumMethod.register
+    def _(self, arg1: float, arg2: float):
+        print("Sum with arg1 as float. %s + %s = %s" % (arg1, arg2, arg1 + arg2))
+
+
+s = Sum()
+s.sumMethod(2, 3)
+s.sumMethod(2.1, 3.4)
+s.sumMethod("hi", 3.4)
+```
 ## Indirect function calls
 1) use another variable for this function
 2) use `partial`
@@ -1915,6 +1980,15 @@ The syntax of issubclass() is:
 
 `issubclass(class, classinfo)`
 
+## Composition vs Inheritance
+In composition, a class contains one or more objects of other classes as private members to use the functionalities of other classes through their objects.
+Composition is a ‘has-a’ relationship between classes. For example, a car has an engine, and a person has a heart, etc.
+Composition allows the reusability of code while having classes and objects being loosely coupled, so that changing codes is easier.
+
+In inheritance, a class directly acquires all the attributes and methods of another class or classes and then extends or specializes them.
+Inheritance is an ‘is-a’ relationship between classes. For example, a teacher is a person, and an apple is a fruit, etc.
+Inheritance also allows reusability of the code by removing code redundancy. However, it binds the classes closely. As a result, changing the code in the parent class must be done carefully, since it affects the child classes as well.
+
 ## `__slots__`	
 
 The special attribute `__slots__` allows you to explicitly state which instance attributes you expect your object instances to have, with the expected results:
@@ -2106,6 +2180,28 @@ asyncio.run(main())
 ```
 
 # Unit testing in Python	
+## Compare common test frameworks (e.g unittest, pytest, robot framework)
+Pytest is a testing framework based on Python. Pytest is now popular because it’s easy-to-use fixtures. Pytest is mostly used for API testing, also we can use Pytest for simple as well as complex tests, that is, you can write test cases to test APIs, database, etc.
+Which is better – pytest or unittest?
+Although both the frameworks are great for performing testing in python, pytest is easier to work with. The code in pytest is simple, compact, and efficient.
+For unittest, we will have to import modules, create a class and define the testing functions within that class. But for pytest, we only have to define the testing function. Pytest is also fast and efficient.
+Robot Framework is an open-source, keyword-driven test automation framework for Acceptance Testing and Acceptance Test-Driven Development (ATDD). A keyword-driven test approach means capabilities implemented in python can be extended by its test libraries.
+Pytest vs Robot:
+1) In terms of test data organization, Robot Framework is an efficient way to organize the test cases and write the test cases in a very handy manner. Whereas for Pytest, It is an efficient way of clubbing the repeated test cases in a single test function and variables can be passed with the use of fixtures, As explained in the above example.
+2) If we go in terms of code maintainability, Pytest will be preferred than Robot as all the fixtures are present in the Pytest file and also it removes the compulsion of config for each suite.
+3) With Pytest, Execution time for test cases is reduced to 30-40 percent as compared to the Robot Framework.
+4) Robot Framework provides HTML reports whereas Pytest does not, you have to install a plugin in Pytest to get the detailed report.
+
+If you are a beginner having less experience in the automation domain, then you should go for Robot Framework as it is easy to use because of its keyword-driven approach and rich in-built libraries. For detailed information refer: https://robotframework.org/
+But If you have a good programming skill and want to build complex automation, then you should go for Pytest as it also comes with static code analysis, huge IDE support, etc
+
+## Tests as Quality Attributes guards (load, performance tests). 
+https://fortegrp.com/load-testing-vs-performance-testing/
+## Tools (locust, gatling, tox)
+`locust` - An open source load testing tool. A fundamental feature of Locust is that you describe all your test in Python code. No need for clunky UIs or bloated XML, just plain code.
+`gatling` - Load-Test-As-Code: the best way to load test your applications, designed for DevOps and CI/CD.
+`tox` - aims to automate and standardize testing in Python. It is part of a larger vision of easing the packaging, testing and release process of Python software (alongside pytest and devpi).
+
 ## Mock objects
 
 A mock object substitutes and imitates a real object within a testing environment. It is a versatile and powerful tool for improving the quality of your tests.
@@ -2471,6 +2567,89 @@ if (!PyEval_ThreadsInitialized())
 ...
 ```
 
+## Async generators, async for
+An asynchronous generator is a coroutine that uses the yield expression.Unlike a function generator, the coroutine can schedule and await other coroutines and tasks.
+Like a classical generator, an asynchronous generator function can be used to create an asynchronous generator iterator that can be traversed using the built-in anext() function, instead of the next() function.
+This means that the asynchronous generator iterator implements the __anext__() method and can be used with the async for expression
+The async-for expression is used when developing asyncio programs.
+For example, it may be common for a stream or socket connection to operate like an iterator or generator, allowing objects or lines of data to be retrieved as awaitables. These can be traversed and processed.
+Additionally, custom asynchronous iterators and generators can be developed that return awaitables that can be traversed by an asyncio program.
+```python
+import asyncio
+
+# define an asynchronous generator
+async def async_generator():
+    # normal loop
+    for i in range(10):
+        # block to simulate doing work
+        await asyncio.sleep(1)
+        # yield the result
+        yield i
+ 
+# define a simple coroutine
+async def custom_coroutine():
+    # asynchronous for loop
+    async for item in async_generator():
+        # report the result
+        print(item)
+asyncio.run(custom_coroutine())
+```
+## uvloop
+https://github.com/MagicStack/uvloop
+asyncio is an asynchronous I/O framework shipping with the Python Standard Library. In this blog post, we introduce uvloop: a full, drop-in replacement for the asyncio event loop. uvloop is written in Cython and built on top of libuv.
+uvloop makes asyncio fast. In fact, it is at least 2x faster than nodejs, gevent, as well as any other Python asynchronous framework. The performance of uvloop-based asyncio is close to that of Go programs.
+
+The asyncio module, introduced by PEP 3156, is a collection of network transports, protocols, and streams abstractions, with a pluggable event loop. The event loop is the heart of asyncio. It provides APIs for:
+- scheduling calls,
+- transmitting data over the network,
+- performing DNS queries,
+- handling OS signals,
+- convenient abstractions to create servers and connections,
+- working with subprocesses asynchronously.
+
+Using uvloop in your asyncio code is as easy as:
+
+```python
+import asyncio
+import uvloop
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+```
+It is safe to conclude that, with uvloop, it is possible to write Python networking code that can push tens of thousands of requests per second per CPU core. On multicore systems a process pool can be used to scale the performance even further.
+uvloop and asyncio, combined with the power of async/await in Python 3.5, makes it easier than ever to write high-performance networking code in Python.
+
+
+## Web app processes vs threads (e.g. types of gunicorn workers)
+Let me attempt an answer. Let us assume that at the beginning my deployment only has a single gunicorn worker. This allows me to handle only one request at a time. My worker's work is just to make a call to google.com and get the search results for a query. Now I want to increase my throughput. I have the below options:
+Keep one worker only and increase number of threads in that worker
+This is the easiest. Since threads are more lightweight (less memory consumption) than processes, I keep only one worker and add several threads to that. Gunicorn will ensure that the master can then send more than one requests to the worker. Since the worker is multithreaded, it is able to handle 4 requests. Fantastic. Now why would I need more workers ever?
+To answer that, assume that I need to do some work on the search results that google returned. For instance I might also want to calculate a prime number for each result query. Now I am making my workload compute bound and I hit the problem with python's global interpreter lock. Even though I have 4 threads, only one thread can actually process the results at a time. This means to get true parallel performance I need more than one worker.
+### Increase Number of workers but all workers are single threaded
+So why I need this would be when I need to get true parallel processing. Each worker can parallely make a call to google.com, get results and do any processing. All in parallel. Fantastic. But the downside is that processes are heavier, and my system might not keep up with the demands of increasing workers to accomplish parallelism. So the best solution is to increase workers and also add more threads to each worker.
+### Increase Number of workers and each worker is multithreaded
+I guess this needs no further explanation.
+### Change worker type to Async
+Now why would I ever want to do this? To answer, remember that even threads consume memory. There are coroutines (a radical construct that you can look up) implemented by gevent library that allow you to get threads without having to create threads. SO if you craft your gunicorn to use worker-type of gevent, you get the benefit of NOT having to create threads in your workers. Assume that you are getting threads w/o having to explicitly create them.
+So, to answer your question, if you are using worker_type of anything other than Sync, you do not need to increase the number of threads in your gunicorn configuration. You can do it, by all means, but it kinda defeats the purpose.
+Hope this helped.
+
+I will also attempt to answer the specific questions.
+No, the threaded option is not present for the Async worker class. This actually needs to be made clearer through the documentation. Wondering why that has not happened.
+This is a question that needs more knowledge of your specific application. If the processing of these 100s of parallel requests just involves I/O kind of operations, like fetching from DB, saving, collecting data from some other application, then you can make use of the threaded worker. But if that is not the case and you want to execute on a n core CPU because the tasks are extremely compute bound, maybe like calculating primes, you need to make use of the Sync worker. The reasoning for Async is slightly different. To use Async, you need to be sure that your processing is not compute bound, this means you will not be able to make use of multiple cores. Advantage you get is that the memory that multiple threads would take would not be there. But you have other issues like non monkey patched libraries. Move to Async only if the threaded worker does not meet your requirements.
+Sync, non threaded workers are the best option if you want absolute thread safety amongst your libraries.
+
+## Cooperative vs preemptive multitasking
+###Short answer:
+####Preemptive:
+threads do not decide when to run and are forced to share the CPU
+####Cooperative:
+each thread, once running decides for how long to keep the CPU, and (crucially) when it is time to give it up so that another thread can use it.
+
+###Long answer:
+####Preemptive:
+It means that threads are not in control on when and/or for how long they are going to use the CPU and run. It is the scheduler (a component of the OS) that decides at any moment which thread can run and which has to sleep. You have no strong guarantees on what will be the next time a thread will run, and for how long. It is completely up to the scheduler.
+####Cooperative:
+In cooperative multitasking, what happens is that the scheduler has no say in when a thread can run. Each thread decides for how long it keeps the CPU. If it decided not to share the CPU with any other thread, then no other threads will run causing what is known as starvation.
+Note that stopping one thread and starting another incurs in a certain amount of overhead. It means that you spend time and resources not to execute code from your tasks, but purely for the sake of enabling sharing the CPU. In certain real-time low latency application (like high frequency trading), this can be quite unacceptable.
 
 # Distributing and documentation in Python	
 ## `distutils`, setup.py	
@@ -2727,6 +2906,109 @@ Just read their names and short descriptions at least. You would be surprised ho
 - `datetime`, 
 - `argparse` Parser for command-line options, arguments and sub-commands https://docs.python.org/3/library/argparse.html
 - `optparse` Deprecated since version 3.2: The optparse module is deprecated and will not be developed further; development will continue with the argparse module.
+- `pickle` This module implements binary protocols for serializing and de-serializing a Python object structure.
+- `contextlib` This module provides utilities for common tasks involving the with statement. For more information see also Context Manager Types and With Statement Context Managers.
+- `importlib` The purpose of the importlib package is three-fold. One is to provide the implementation of the import statement (and thus, by extension, the __import__() function) in Python source code. Two, the components to implement import are exposed in this package, making it easier for users to create their own custom objects (known generically as an importer) to participate in the import process. Three, the package contains modules exposing additional functionality for managing aspects of Python packages
+- `pkgutil` This module provides utilities for the import system, in particular package support.
+- `socket` This module provides access to the BSD socket interface. It is available on all modern Unix systems, Windows, MacOS, and probably additional platforms.
+- `reload` The reload() is a previously imported module. If you’ve altered the module source file using an outside editor and want to test the updated version without leaving the Python interpreter, this is helpful. The module object is the return value.
+
+# Python ORM Frameworks
+
+## Active Record vs Mapper Pattern
+Many programmers use ORM for data persistence, but also many don’t know the patterns these ORMs internally use. In this story I will show the difference between two famous data persistence patterns:
+
+Active Record: The object in this pattern encapsulates two main things: data and behavior. Since all business logic in the domain object it is clear and obvious where to access the database. Django ORM is one the famous libraries that follow this approach
+Data mapper: a data mapper is layer that is responsible for transferring the data between a data store and in-memory objects. SQLAlchemy follows this patterns.
+I will post two gists that includes clear examples of how the libraries mentioned above apply these patterns.
+
+SQLAlchemy
+```python
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+engine = create_engine('sqlite:///users.db', echo=True)
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    def __repr__(self):
+        return str.format("User with {id} and {name}", id=self.id, name=self.name)
+
+
+# let's create the schema
+Base.metadata.create_all(engine)
+
+# Session, our beautiful ORM, will be the factory for any new session with db
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Let's now do the logic
+# creating new object
+new_user = User(name='Yasser')
+
+# since it is not added to the session, session will not
+# track its status so this will print empty list
+print(session.new)  # IdentitySet([])
+
+session.add(new_user)
+print(session.new)  # IdentitySet([User with None and Yasser])
+
+
+# this will execute INSERT statement
+session.commit()
+
+# now this user is in memory and mapped to the row in its table
+for obj in session.identity_map:
+    print obj # (<class '__main__.User'>, (1,), None)
+
+
+# changing object attributes will change it's state in the session layer
+# which needs to be reflected later by update statement to database
+new_user.name = 'Yasser 2'
+print(session.dirty)  # IdentitySet([User with 1 and Yasser 2])
+
+# this will execute UPDATE statement
+session.commit()
+```
+
+Django ORM:
+I created a django project with an application called users. After I ran makemigrations and migrate for creating the tables, I applied the code in the following gist.
+
+```python
+# in users app i added this model
+class User(models.Model):
+    name = models.CharField(max_length=10)
+    
+# in django shell execute the following
+from users.models import *
+
+# the object will hold all the logic
+new_user = User(name='Yasser')
+# this will execute an INSERT
+new_user.save()
+new_user.name = 'Yasser 2'
+
+# this will execute an UPDATE
+new_user.save()
+
+# for retrieving data we have to use objects property (https://docs.djangoproject.com/en/2.1/topics/db/managers/) 
+User.objects.first() # <User: User object>
+```
+
+## Migrations, what are they needed for? Overview of Tools (Alembic, Django Migration)
+Here are a few ways Django migrations make your life easier:
+- Making Database Changes Without SQL
+- Avoiding Repetition (Creating a model and then writing SQL to create the database tables for it would be repetitive.)
+- Ensuring Model Definitions and the Database Schema in Sync
+- Tracking Database Schema Change in Version Control
+
 
 # Code Standards
 
@@ -2931,6 +3213,8 @@ Mutation testing, also known as code mutation testing, is a form of white box te
 
 # Logging
 
+## Customization
+https://dotnettutorials.net/lesson/customized-logging-in-python/
 ## Health Check	
 
 Healthcheck is a library to write simple healthcheck functions that can be used to monitor your application. It is possible to use in a Flask app or Tornado app. It’s useful for asserting that your dependencies are up and running and your application can respond to HTTP requests
@@ -3514,6 +3798,39 @@ There are four levels of transaction isolation used in SQL standard regarding th
   ![img_2.png](img_2.png)
 - serialization anomaly: The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.
 
+## Database normalization forms
+Normalization is the process of organizing data in a database. The main purpose of normalization is to reduce redundancy. Normalization divides the master table into smaller tables and links them.
+
+Types of normalization
+First normal form (1NF)
+Second normal form (2NF)
+Third normal form (3NF)
+Boyce-Codd normal form (BCNF)
+Fourth normal form (4NF)
+
+First normal form
+A relation is in the first normal form if it contains an atomic value.
+First normal form does not allow a multi-valued trait, a compound trait, and their combinations.
+We cannot have multiple values in first normal form.
+Second normal form
+A table is in second normal form if:
+
+The table should be in first normal form.
+No non-prime attribute is dependent on the proper subset of any candidate key of the table. This is called partial dependency.
+Second normal form should not have any partial dependencies.
+Third normal form
+A table is in third normal form if:
+
+The table should be in second normal form.
+Transitive functional dependency of non-prime attributes on any super key should be removed.
+Boyce-Codd normal form
+A table complies with BCNF if it is in 3NF and for every functional dependency X->Y, X should be a super key of the table.
+BCNF is the advanced version of 3NF and is stronger than 3NF.
+Fourth normal form
+A relation is in fourth normal form if it is in BCNF and has no multi-valued dependencies.
+For a dependency A->B, if for a single value, A, multiple values of B exist, then the relation is a multi-valued dependency.
+
+More info -> https://habr.com/ru/post/254773/
 
 # Common Questions
 
