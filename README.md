@@ -244,6 +244,13 @@ a = ('abc', [1,2,3])
 ```
 https://stackoverflow.com/questions/46946138/in-python-class-object-is-immutable-object-but-it-can-be-modify-why
 
+That's why dictionary can't be created for tuple with unhashable value if tuple consists it
+```python
+a = ('abc', [1,2,3])
+b = {a:'Hi'} # TypeError: unhashable type: 'list'
+c = ('abc', 1, 2)
+d = {c:'Hello'} # It will work
+```
 - frozen set [note: immutable version of set] 
 
 - bytes
