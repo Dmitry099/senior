@@ -510,6 +510,12 @@ Python `slice()` function returns a slice object.
 
 A sequence of objects of any type(`string`, `bytes`, `tuple`, `list` or `range`) or the object which implements `__getitem__()` and `__len__()` method then this object can be sliced using `slice()` method.
 
+```python
+a = [1,2,3,4]
+b = slice(1,3)
+print(a[b])  # Result is [2, 3]
+```
+
 ## OrderedDict, DefaultDict
 An OrderedDict is a dictionary subclass that remembers the order that keys were first inserted. The only difference between dict() and OrderedDict() is that:
 
