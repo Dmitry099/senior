@@ -2692,6 +2692,12 @@ It means that threads are not in control on when and/or for how long they are go
 In cooperative multitasking, what happens is that the scheduler has no say in when a thread can run. Each thread decides for how long it keeps the CPU. If it decided not to share the CPU with any other thread, then no other threads will run causing what is known as starvation.
 Note that stopping one thread and starting another incurs in a certain amount of overhead. It means that you spend time and resources not to execute code from your tasks, but purely for the sake of enabling sharing the CPU. In certain real-time low latency application (like high frequency trading), this can be quite unacceptable.
 
+
+Coroutines - cooperative multitasking
+Threads - preemtive multitasking
+
+Additional info -> https://medium.com/fullstackai/concurrency-in-python-cooperative-vs-preemptive-scheduling-5feaed7f6e53
+
 # Distributing and documentation in Python	
 ## `distutils`, setup.py	
 
