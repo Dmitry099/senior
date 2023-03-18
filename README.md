@@ -2650,6 +2650,34 @@ No, the threaded option is not present for the Async worker class. This actually
 This is a question that needs more knowledge of your specific application. If the processing of these 100s of parallel requests just involves I/O kind of operations, like fetching from DB, saving, collecting data from some other application, then you can make use of the threaded worker. But if that is not the case and you want to execute on a n core CPU because the tasks are extremely compute bound, maybe like calculating primes, you need to make use of the Sync worker. The reasoning for Async is slightly different. To use Async, you need to be sure that your processing is not compute bound, this means you will not be able to make use of multiple cores. Advantage you get is that the memory that multiple threads would take would not be there. But you have other issues like non monkey patched libraries. Move to Async only if the threaded worker does not meet your requirements.
 Sync, non threaded workers are the best option if you want absolute thread safety amongst your libraries.
 
+###  Production python web application stack
+Normally, a python web application is deployed in production with three main components:
+
+A web server (like nginx): host static files, handle http connections
+A WSGI HTTP server (like Gunicorn): invoke multiple processes of the web application and distribute the load among them.
+A web application: an actual logic application written using web framework (such as Django, Flask).
+
+### Gunicorn Architecture
+Gunicorn is one of many WSGI server implementations, it is based on a pre-fork worker model:
+
+A single master process is started and it invokes multiple child processes (also known as workers).
+The pre in pre-forked means that the master process creates the workers before handling any HTTP request.
+Master process plays the role to communicate with the web server, keeps multiple instances of the web application running, ensure their healthiness and distributing incoming requests across those instances. If any of the workers dies, the master process starts another one to make sure that the number of workers is the same as the one defined in the settings.
+The role of the worker processes are to handle HTTP requests.
+
+Gunicorn provides serval types of worker: sync, gthread, gevent, evenlet, tornado … and it can be clarified into three different categories:
+
+request per process (sync): master process delegates a single http request to a worker at a time.
+request per thread (gthread): each worker process spawns a number of threads, gunicorn delegates a single http request to a thread spawned by a worker at a time.
+request with async IO (gevent, evenlet or tornado): a worker process handles multiple requests at a time with async IO.
+
+In conclusion:
+For different scenarios, you can choose different worker types in Gunicorn to improve the performance. For CPU bounded apps, you can go with “request per process” or “request per thread”. For I/O bounded apps , it is recommended to use coroutines.
+
+If you don’t know what you are doing, you can start with “request per process” option, then enhance the source code to be thread-safe and change to “request per thread” for higher number of concurrent requests. If the thread does not solve your problem, go ahead and implement connection pool and monkey patch your code to use coroutines approach.
+
+Additional info -> https://medium.com/@nhudinhtuan/gunicorn-worker-types-practice-advice-for-better-performance-7a299bb8f929
+
 ## Cooperative vs preemptive multitasking
 ###Short answer:
 ####Preemptive:
