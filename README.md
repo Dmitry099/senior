@@ -3067,7 +3067,7 @@ https://realpython.com/python-pep8/
 
 What to know:
 
-* Code Review Best Practices (aims, feedback, reporting, periodicity, reviewers hierarchy)
+* Code Review Best Practices (aims, feedback, reporting, periodicity, reviewers hierarchy) -> https://www.perforce.com/blog/qac/9-best-practices-for-code-review
 * Performs code review for "Merge/Pull requests" in GitLab
 * Performs code review with Atlassian Crucible
 * Gerrit  (online code review) https://gerrit-documentation.storage.googleapis.com/Documentation/3.5.1/intro-how-gerrit-works.html
