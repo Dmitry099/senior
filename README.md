@@ -3212,7 +3212,8 @@ In GitLab Flow, development happens in one of these environmental branches, and 
 * Implements and improves CI processes on the project
 
 ## Continuous Delivery & Deployment		
-* Has experience with Delivery Pipeline usage
+* Has experience with Deployment and Delivery Pipeline usage
+More info -> https://www.puppet.com/blog/continuous-delivery-vs-deployment
 
 # Unit and API Testing (White box)	
 ## Test coverage. Understand how to treat this metric
