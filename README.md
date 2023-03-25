@@ -2012,7 +2012,8 @@ The special attribute `__slots__` allows you to explicitly state which instance 
 The space savings is from Storing value references in slots instead of __dict__.
 
 Denying `__dict__` and `__weakref__` creation if parent classes deny them and you declare `__slots__`.
-Quick Caveats
+
+Small caveat, you should only declare a particular slot one time in an inheritance tree. For example:
 
 ```python
 class Base:
@@ -2020,7 +2021,25 @@ class Base:
 
 class Right(Base):
     __slots__ = 'baz', 
+
+class Wrong(Base):
+    __slots__ = 'foo', 'bar', 'baz'        # redundant foo and bar
 ```
+
+The biggest caveat is for multiple inheritance - multiple "parent classes with nonempty slots" cannot be combined.
+```python
+class Foo(object): 
+    __slots__ = 'foo', 'bar'
+class Bar(object):
+    __slots__ = 'foo', 'bar' # alas, would work if empty, i.e. ()
+
+>>> class Baz(Foo, Bar): pass
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: Error when calling the metaclass bases
+    multiple bases have instance lay-out conflict
+```
+To accommodate this restriction, follow best practices: Factor out all but one or all parents' abstraction which their concrete class respectively and your new concrete class collectively will inherit from - giving the abstraction(s) empty slots (just like abstract base classes in the standard library).
 
 # Troubleshooting in Python	
 ## Types of profilers: Static and dynamic profilers
