@@ -2407,6 +2407,16 @@ Tuples containing only immutable objects (integers, strings etc, and recursively
 
 Dictionaries containing only immutable objects also do not need to be tracked
 
+
+###Identifying reference cycles
+The algorithm that CPython uses to detect those reference cycles is implemented in the gc module. The garbage collector only focuses on cleaning container objects (i.e. objects that can contain a reference to one or more objects). These can be arrays, dictionaries, lists, custom class instances, classes in extension modules, etc. One could think that cycles are uncommon but the truth is that many internal references needed by the interpreter create cycles everywhere. 
+To correctly dispose of these objects once they become unreachable, they need to be identified first. Inside the function that identifies cycles, two doubly linked lists are maintained: one list contains all objects to be scanned, and the other will contain all objects “tentatively” unreachable.
+
+When the GC starts, it has all the container objects it wants to scan on the first linked list. The objective is to move all the unreachable objects. Since most objects turn out to be reachable, it is much more efficient to move the unreachable as this involves fewer pointer updates.
+
+Every object that supports garbage collection will have an extra reference count field initialized to the reference count (gc_ref in the figures) of that object when the algorithm starts. This is because the algorithm needs to modify the reference count to do the computations and in this way the interpreter will not modify the real reference count field.
+The GC then iterates over all containers in the first list and decrements by one the gc_ref field of any other object that container is referencing. Doing this makes use of the tp_traverse slot in the container class (implemented using the C API or inherited by a superclass) to know what objects are referenced by each container. After all the objects have been scanned, only the objects that have references from outside the “objects to scan” list will have gc_ref > 0.
+Notice that an object that was marked as “tentatively unreachable” and was later moved back to the reachable list will be visited again by the garbage collector as now all the references that that object has need to be processed as well. This process is really a breadth first search over the object graph. Once all the objects are scanned, the GC knows that all container objects in the tentatively unreachable list are really unreachable and can thus be garbage collected.
 ## recommendations for GC usage	
 
 General rule: Don’t change garbage collector behavior
