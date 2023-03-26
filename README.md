@@ -3334,6 +3334,12 @@ https://www.datadoghq.com/product/ - can save all logs.
 * Focuses on issues mainly in technical and team communication/interaction areas.
 * Helps employees to identify next steps when it's unclear how to proceed
 
+##Python Memory allocation
+Unlike static memory allocation, Dynamic memory allocates the memory at the runtime to the program. For example - In C/C++, there is a predefined size of the integer of float data type but there is no predefine size of the data types. Memory is allocated to the objects at the run time. We use the Heap for implement dynamic memory management. We can use the memory throughout the program.
+As we know, everything in Python is an object means dynamic memory allocation inspires the Python memory management. Python memory manager automatically vanishes when the object is no longer in use.
+
+Useful topic -> https://www.javatpoint.com/python-memory-management
+
 
 # Cross-discipline questions:
 
