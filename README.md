@@ -2317,6 +2317,43 @@ The doctest module searches for pieces of text that look like interactive Python
 
 # Memory management in Python
 
+## Memory allocation in Python
+Memory allocation is an essential part of the memory management for a developer. This process basically allots free space in the computer's virtual memory, and there are two types of virtual memory works while executing programs.
+
+Static Memory Allocation
+Dynamic Memory Allocation
+
+### Static Memory Allocation
+Static memory allocation happens at the compile time. For example - In C/C++, we declare a static array with the fixed sizes. Memory is allocated at the time of compilation. However, we cannot use the memory again in the further program.
+```shell
+static int a=10;
+```
+The Stack data structure is used to store the static memory. It is only needed inside the particular function or method call. The function is added in program's call stack whenever we call it. Variable assignment inside the function is temporarily stored in the function call stack; the function returns the value, and the call stack moves to the text task. The compiler handles all these processes, so we don't need to worry about it.
+
+Call stack (stack data structure) holds the program's operational data such as subroutines or function call in the order they are to be called. These functions are popped up from the stack when we called.
+
+### Dynamic Memory Allocation
+Unlike static memory allocation, Dynamic memory allocates the memory at the runtime to the program. For example - In C/C++, there is a predefined size of the integer of float data type but there is no predefine size of the data types. Memory is allocated to the objects at the run time. We use the Heap for implement dynamic memory management. We can use the memory throughout the program.
+
+As we know, everything in Python is an object means dynamic memory allocation inspires the Python memory management. Python memory manager automatically vanishes when the object is no longer in use.
+
+Heap data structure is used for dynamic memory which is not related to naming counterparts. It is type of memory that uses outside the program at the global space. One of the best advantages of heap memory is to it freed up the memory space if the object is no longer in use or the node is deleted.
+
+The program that we write using Python language first converts into the computer-relatable instructions bytecode. The virtual machine interprets this bytecode.
+
+Python uses a portion of the memory for internal use and non-object memory. Another part of the memory is used for Python object such as int, dict, list, etc.
+
+CPython contains the object allocator that allocates memory within the object area. The object allocator gets a call every time the new object needs space. The allocator primary designs for small amount of data because Python doesn't involve too much data at a time. It allocates the memory when it is absolutely required.
+
+There are three main components of the CPython memory allocation strategy.
+
+Arena - It is the largest chunks of memory and aligned on a page boundary in memory. The operating system uses the page boundary which is the edge of a fixed-length contiguous chuck of memory. Python assumes the system's page size is 256 kilobytes.
+
+Pools - It is composed of a single size class. A pool of the same size manages a double-linked list. A pool must be - used, full, or empty. A used pool consists of memory blocks for data to be stored. A full pool has all the allocated and contain data. An empty pool doesn't have any data and can be assigned any size class for the block when needed.
+
+Blocks - Pools contains a pointer to their "free" block of the memory. In the pool, there is a pointer, which indicates the free block of memory. The allocator doesn't touch these block until it's actually needed.
+
+
 ## 3 generations of GC
 
 The main garbage collection algorithm used by CPython is reference counting. The basic idea is that CPython counts how many different places there are that have a reference to an object. Such a place could be another object, or a global (or static) C variable, or a local variable in some C function. When an object’s reference count becomes zero, the object is deallocated. If it contains references to other objects, their reference counts are decremented. Those other objects may be deallocated in turn, if this decrement makes their reference count become zero, and so on. The reference count field can be examined using the sys.getrefcount function (notice that the value returned by this function is always 1 more as the function also has a reference to the object when called):
@@ -3799,7 +3836,265 @@ The five values of XP are communication, simplicity, feedback, courage, and resp
 - 40-hour week
 - On-site Customer
 - Coding Standard
-  
+
+
+## Security related questions
+
+###HTTP vs HTTPS
+HTTP stands for Hypertext Transfer Protocol, and it is a protocol – or a prescribed order and syntax for presenting information – used for transferring data over a network. Most information that is sent over the Internet, including website content and API calls, uses the HTTP protocol. There are two main kinds of HTTP messages: requests and responses.
+HTTP requests are generated by a user's browser as the user interacts with web properties. For example, if a user clicks on a hyperlink, the browser will send a series of "HTTP GET" requests for the content that appears on that page.
+An HTTP request is just a series of lines of text that follow the HTTP protocol. A GET request might look like this:
+
+```shell
+GET /hello.txt HTTP/1.1
+User-Agent: curl/7.63.0 libcurl/7.63.0 OpenSSL/1.1.l zlib/1.2.11
+Host: www.example.com
+Accept-Language: en
+```
+This section of text, generated by the user's browser, gets sent across the Internet. The problem is, it's sent just like this, in plaintext that anyone monitoring the connection can read. 
+This is especially an issue when users submit sensitive data via a website or a web application. This could be a password, a credit card number, or any other data entered into a form, and in HTTP all this data is sent in plaintext for anyone to read. (When a user submits a form, the browser translates this into an HTTP POST request instead of an HTTP GET request.)
+If a website uses HTTP instead of HTTPS, all requests and responses can be read by anyone who is monitoring the session.
+
+![img_3.png](images/img_3.png)
+
+The S in HTTPS stands for "secure." HTTPS uses TLS (or SSL) to encrypt HTTP requests and responses, so in the example above, instead of the text, an attacker would see a bunch of seemingly random characters.
+Instead of:
+
+```shell
+GET /hello.txt HTTP/1.1
+User-Agent: curl/7.63.0 libcurl/7.63.0 OpenSSL/1.1.l zlib/1.2.11
+Host: www.example.com
+Accept-Language: en
+```
+
+The attacker sees something like:
+oiwldr1j2gHBB3L3RFTRsQCpaSnSBZ78Vme+DpDVJPvZdZUZHpzbbcqmSW1+3xXGsERHg9YDmpYk0VVDiRvw1H5miNieJeJ/FNUjgH0BmVRWII6+T4MnDwmCMZUI/orxP3HGwYCSIvyzS3MpmmSe4iaWKCOHQ==
+
+So, the only difference between the two protocols is that HTTPS uses TLS (SSL) to encrypt normal HTTP requests and responses, and to digitally sign those requests and responses. As a result, HTTPS is far more secure than HTTP. 
+TLS uses a technology called public key cryptography: there are two keys, a public key and a private key, and the public key is shared with client devices via the server's SSL certificate. When a client opens a connection with a server, the two devices use the public and private key to agree on new keys, called session keys, to encrypt further communications between them.
+All HTTP requests and responses are then encrypted with these session keys, so that anyone who intercepts communications can only see a random string of characters, not the plaintext
+
+Difference between HTTP and HTTPS in tabular form
+
+| HTTP                                                                               | HTTPS                                                                                                                               |
+|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| The full form of HTTP is the Hypertext Transfer Protocol.                          | The full form of HTTPS is Hypertext Transfer Protocol Secure.                                                                       |
+| It is written in the address bar as http://.                                       | It is written in the address bar as https://.                                                                                       |
+| The HTTP transmits the data over port number 80.                                   | The HTTPS transmits the data over port number 443.                                                                                  |
+| It is unsecured as the plain text is sent, which can be accessible by the hackers. | It is secure as it sends the encrypted data which hackers cannot understand.                                                        |
+| It is mainly used for those websites that provide information like blog writing.   | It is a secure protocol, so it is used for those websites that require to transmit the bank account details or credit card numbers. |
+| It is an application layer protocol.                                               | It is a transport layer protocol.                                                                                                   |
+| It does not use SSL(Secure Sockets Layer).                                         | It uses SSL that provides the encryption of the data.                                                                               |
+| Google does not give the preference to the HTTP websites.                          | Google gives preferences to the HTTPS as HTTPS websites are secure websites.                                                        |
+| The page loading speed is fast.                                                    | The page loading speed is slow as compared to HTTP because of the additional feature that it supports, i.e., security.              |
+
+###oAuth
+OAuth is an open-standard authorization protocol or framework that provides applications the ability for “secure designated access.” For example, you can tell Facebook that it’s OK for ESPN.com to access your profile or post updates to your timeline without having to give ESPN your Facebook password. This minimizes risk in a major way: In the event ESPN suffers a breach, your Facebook password remains safe.
+
+OAuth doesn’t share password data but instead uses authorization tokens to prove an identity between consumers and service providers. OAuth is an authentication protocol that allows you to approve one application interacting with another on your behalf without giving away your password.
+
+The simplest example of OAuth in action is one website saying “hey, do you want to log into our website with other website’s login?” In this scenario, the only thing the first website – let’s refer to that website as the consumer – wants to know is that the user is the same user on both websites and has logged in successfully to the service provider – which is the site the user initially logged into, not the consumer.
+
+OAuth is about authorization and not authentication. Authorization is asking for permission to do stuff. Authentication is about proving you are the correct person because you know things. OAuth doesn’t pass authentication data between consumers and service providers – but instead acts as an authorization token of sorts.
+
+The common analogy I’ve seen used while researching OAuth is the valet key to your car. The valet key allows the valet to start and move the car but doesn’t give them access to the trunk or the glove box.
+
+![img.png](images/img_4.png)
+
+####How OAuth works
+
+There are 3 main players in an OAuth transaction: the user, the consumer, and the service provider.  This triumvirate has been affectionately deemed the OAuth Love Triangle.
+In our example, Joe is the user, Bitly is the consumer, and Twitter is the service provided who controls Joe’s secure resource (his Twitter stream).  Joe would like Bitly to be able to post shortened links to his stream.  Here’s how it works:
+
+Step 1 – The User Shows Intent
+Joe (User): “Hey, Bitly, I would like you to be able to post links directly to my Twitter stream.”
+Bitly (Consumer): “Great! Let me go ask for permission.”
+
+Step 2 – The Consumer Gets Permission
+Bitly: “I have a user that would like me to post to his stream. Can I have a request token?”
+Twitter (Service Provider): “Sure.  Here’s a token and a secret.”
+The secret is used to prevent request forgery.  The consumer uses the secret to sign each request so that the service provider can verify it is actually coming from the consumer application.
+
+Step 3 – The User Is Redirected to the Service Provider
+Bitly: “OK, Joe.  I’m sending you over to Twitter so you can approve.  Take this token with you.”
+Joe: “OK!”
+- Bitly directs Joe to Twitter for authorization>
+
+This is the scary part. If Bitly were super-shady Evil Co. it could pop up a window that looked like Twitter but was really phishing for your username and password.  Always be sure to verify that the URL you’re directed to is actually the service provider (Twitter, in this case).
+Step 4 – The User Gives Permission
+Joe: “Twitter, I’d like to authorize this request token that Bitly gave me.”
+Twitter: “OK, just to be sure, you want to authorize Bitly to do X, Y, and Z with your Twitter account?”
+Joe: “Yes!”
+Twitter: “OK, you can go back to Bitly and tell them they have permission to use their request token.”
+Twitter marks the request token as “good-to-go,” so when the consumer requests access, it will be accepted (so long as it’s signed using their shared secret).
+
+Step 5 – The Consumer Obtains an Access Token
+Bitly: “Twitter, can I exchange this request token for an access token?”
+Twitter: “Sure.  Here’s your access token and secret.”
+
+Step 6 – The Consumer Accesses the Protected Resource
+Bitly: “I’d like to post this link to Joe’s stream.  Here’s my access token!”
+Twitter: “Done!”
+
+In our scenario, Joe never had to share his Twitter credentials with Bitly.  He simply delegated access using OAuth in a secure manner.  At any time, Joe can login to Twitter and review the access he has granted and revoke tokens for specific applications without affecting others.  OAuth also allows for granular permission levels.  You can give Bitly the right to post to your Twitter account, but restrict LinkedIn to read-only access.
+
+####OAuth 1.0 vs. OAuth 2.0
+OAuth 2.0 is a complete redesign from OAuth 1.0, and the two are not compatible. If you create a new application today, use OAuth 2.0. This blog only applies to OAuth 2.0, since OAuth 1.0 is deprecated.
+
+OAuth 2.0 is faster and easier to implement. OAuth 1.0 used complicated cryptographic requirements, only supported three flows, and did not scale.
+
+OAuth 2.0, on the other hand, has six flows for different types of applications and requirements and enables signed secrets over HTTPS. OAuth tokens no longer need to be encrypted on the endpoints in 2.0 since they are encrypted in transit.
+
+###OAuth and SSO
+OAuth is one of the most common methods used to pass authorization from a single sign-on (SSO) service to another cloud application, but it can be used between any two applications.Other protocols can perform this function as well, although OAuth is one of the most widely used ones.
+
+Suppose Alice wants to access her company's cloud file storage application. She has already signed into her company's SSO, but she has not yet accessed the file storage application that day. When she opens up the file storage application, instead of simply letting her in, the application requests authorization for Alice from her SSO.
+
+In response, the SSO sends an OAuth authorization token to the application. The token contains information about what privileges Alice should have within the application. The token will also have a time limit: after a certain amount of time, the token expires and Alice will have to sign in to her SSO again.
+
+For businesses, the more common use case for OAuth is in conjunction with identity and access management (IAM) systems. Users may be authorized for application usage via OAuth. For example, an employee can sign in to their company's SSO system with their username and password. This SSO system gives them access to all the applications they need in order to do their jobs, and the SSO system does this by passing OAuth authorization tokens to these apps.
+
+####SAML vs. OAuth. What is the difference between authentication and authorization?
+Authorization and authentication sound similar but are not quite the same thing within access management, and the difference between them is very important for understanding how access management technology (including OAuth) works. Authentication has to do with user identity, whereas authorization has to do with user privileges.
+
+Imagine Bob works in a secure facility with a guardhouse out front. All vehicles that enter the facility stop at the guardhouse, and only known employees are allowed in. The guardhouse is where user authentication takes place: the security guards check Bob's identification card against a list of employees and check his vehicle license plate against a list of allowed vehicles. If they are able to authenticate him and his vehicle, he can drive in and park in the facility parking lot.
+
+However, just because Bob can drive into the facility does not mean he can park his vehicle anywhere he wants. Instead, there are designated parking lots for each type of employee. Bob can only park in his designated parking lot; he cannot take the CEO's parking spot.
+
+OAuth is a protocol for authorization: it ensures Bob goes to the right parking lot. In contrast, Security Assertion Markup Language (SAML) is a protocol for authentication, or allowing Bob to get past the guardhouse.
+
+SAML (Security Assertion Markup Language) is an alternative federated authentication standard that many enterprises use for Single-Sign On (SSO). SAML enables enterprises to monitor who has access to corporate resources.
+
+There are many differences between SAML and OAuth. SAML uses XML to pass messages, and OAuth uses JSON. OAuth provides a simpler mobile experience, while SAML is geared towards enterprise security. That last point is a key differentiator: OAuth uses API calls extensively, which is why mobile applications, modern web applications, game consoles, and Internet of Things (IoT) devices find OAuth a better experience for the user. SAML, on the other hand, drops a session cookie in a browser that allows a user to access certain web pages – great for short-lived work days, but not so great when have to log into your thermostat every day.
+
+To summarize: SAML and OAuth are different protocols and are used for different purposes, but both are often used with SSO.
+
+
+## Software development methodologies Scrum/Kanban/Waterfall
+
+###What is the waterfall methodology?
+The waterfall model divides each project into different phases and moves through the phases in sequential order. No phase can begin until the phase before it is completed. Typically, each phase ends in a project milestone that indicates the next phase can begin.
+
+The specific phases of the waterfall process depend on exactly what your team is creating, but typically they look similar to this: 
+
+1. Requirements phase, sometimes split into an additional analysis phase
+2. System design phase
+3. Implementation phase, also known as the development phase or coding phase—depending on the type of project
+4. Testing phase
+5. Deployment phase, also known as the operations phase
+6. Maintenance phase
+
+The waterfall method got its name from the way it looks when you draw the process out. Similarly to a natural waterfall, projects look like they’re cascading from one project phase to the next. 
+
+![img.png](images/img_5.png)
+
+Implementing this project management methodology requires a lot of up-front planning and preparation. A big part of waterfall project management is creating an airtight project plan so your team clearly understands the project requirements and restraints before they get started on the work. That’s because there isn't a lot of room for variation, adaptability, or error once a waterfall project is set in motion.
+
+###What is the agile methodology?
+Agile project management is an iterative methodology where work is completed in short sprints. By prioritizing a flexible approach and continuous delivery, the Agile method is more flexible when it comes to unexpected project changes—however, it can suffer from scope creep as a result.
+
+The Agile methodology was developed to counter traditional waterfall-style project management. As software development became more prevalent in the early 2000s, developers needed an iterative approach to prototyping and project management—and thus Agile software development was born. 
+
+Agile project management includes iterative backlog management, sprints, reflection, iteration, and more sprints. Each Agile sprint typically lasts two to four weeks. 
+
+![img.png](images/img_6.png)
+
+Each sprint goes through the following phases:
+
+1. The product owner organizes the product backlog. The product backlog is a list of every task that may be worked on during the sprint. This information is usually stored in a project management tool.
+2. Before the sprint, the entire project team participates in sprint planning to identify the best tasks to work on during the two-week period.
+3. During the sprint, Agile teams meet frequently to discuss blockers and action items. 
+4. Once the sprint is over, team members get together to run a sprint retrospective and identify what went well and what could have been better. 
+
+###What is Kanban
+Kanban is a subsect of the Agile methodology and functions within the broader Agile mentality. The Agile philosophy is all about adaptive planning, early delivery, and continuous improvement—all of which Kanban can support.
+
+When someone speaks of Kanban in project management, they’re most commonly referring to Kanban boards. A Kanban board represents stages of work with columns that hold the individual tasks for each stage—but more on that in a little bit. 
+
+The Kanban framework is very flexible and can help your team become more dynamic and agile over time.
+
+In a Kanban board, columns represent the various stages of work. Within each column, visual cards represent individual tasks and which stage they’re in. Typically these stages are ‘to do,’ ‘in progress,’ and ‘done.’
+
+![img.png](images/img_7.png)
+
+Kanban boards are one of the most popular forms of visual project management. They’re most effective for providing easy, at-a-glance insight into a project.
+
+When you use a Kanban board for visual project management, you provide your team with a wealth of at-a-glance information, including but not limited to:
+
+- Tasks or deliverables
+- Task assignee
+- Due dates
+- Relevant tags, like priority or task type
+- Task details
+- Context
+- Relevant files
+
+Kanban boards are a flexible way for your team to visualize work in progress. Traditionally, Kanban board columns display the stages of work, which is why they’re popular visual project management tools for teams that run ongoing processes and projects like creative requests or bug tracking projects.
+
+You can also customize your Kanban board columns based on task assignees, add a “swimlane,” or create columns by due dates.
+
+###What is Scrum
+Scrum is one of the most popular Agile frameworks. Unlike Kanban, which is generally used as a tool to visualize work, Scrum is a full framework and you can “run teams” on Scrum. The framework was pioneered by Taiichi Ohno and provides a blueprint of values, guidelines, and roles to help your team focus on continuous improvement and iteration.
+
+It’s much less flexible than Kanban but a great way for Agile teams to collaborate and get high-impact work done.
+
+![img.png](images/img_8.png)
+
+While Scrum, like Agile, was originally created for software development teams, industries like product, engineering, and others now run Scrum to execute their work faster and more effectively. 
+
+To run a Scrum, teams typically assign a Scrum master, who is in charge of running the three distinct Scrum phases and keeping everyone on track. The Scrum master can be your team lead, project manager, product owner, or the person most interested in running Scrum. 
+
+The Scrum master is responsible for implementing the three traditional Scrum phases:
+
+- Phase 1: Sprint planning. A Scrum sprint is usually two weeks long, though teams can run faster or shorter sprints. During the sprint planning phase, the Scrum master and team take a look at the team’s product backlog and select work to accomplish during the sprint.
+- Phase 2: Daily Scrum standups. Over the course of the Scrum (also known as the Scrum “cycle time”), teams traditionally meet for 15 minutes every day to check in on progress and make sure the amount of assigned work is appropriate.
+- Phase 3: Sprint retrospective. When the Scrum is over, the Scrum master hosts a sprint retrospective meeting to evaluate what work was done, route any unfinished work back into the backlog, and prepare for the next sprint.
+
+The goal of Scrum isn’t to build something in two weeks, ship it, and never see it again. Rather, Scrum embraces a mindset of “continuous improvement,” where teams take small steps towards bigger goals. By breaking work into smaller chunks and working on those chunks, Scrum helps teams better prioritize and ship work more efficiently.
+
+Teams that run Scrum have clearly established rules, rituals, and responsibilities. Additionally, your daily Scrum meetings, combined with sprint planning and sprint review (or “retrospective” meetings), help teams continuously check in and improve on current processes.
+
+###Agile vs Waterfall
+
+Use the waterfall methodology if:
+- You’re working on a sequential project and no phase can begin unless the other is complete.
+- You want to tightly control scope creep.
+- You value clear, effective planning.
+- You want to understand the entire development lifecycle before beginning the project.
+- You value functionality over quick delivery.
+
+Use the agile methodology if:
+- You want to use a more iterative process.
+- You want to deliver results quickly—even if that means improving them later on.
+- Your team moves quickly.
+- Your team values adaptability over predictability. 
+- Your customers want to be active stakeholders.
+
+###Kanban vs Scrum
+While the two have some things in common, there are a few major differences between Scrum and Kanban.
+- Scrum is more defined than Kanban. Scrum includes a specific set of “rules” for teams to follow. Kanban is most frequently used to visualize work. Many teams actually run Scrum on a Kanban board—but in those cases, they’re still running Scrum, not Kanban. Think of Kanban less as a “methodology” with a set of rules and more as a way to visualize work.
+- Scrum is time-bound, Kanban is flexible. Scrum runs on sprints, which are typically two-week work cycles. At the end of a sprint, you have a collection of finished work—no matter what that work is. Kanban boards don’t necessarily have to have a beginning or end date. In fact, at Asana, we often use Kanban boards to represent ongoing processes.
+- Kanban board columns can be organized in different ways. When you’re running a Scrum, it’s important to track work as it moves through stages. But within a non-Scrum-based Kanban board, board columns can represent a variety of work, not just work status. Columns could represent the work that will be accomplished each month, a retrospective that captures the work that was previously accomplished, or whatever else you need them to be—unlike Scrum, which has more defined “rules.”
+
+Kanban is right for you is if:
+- Your team needs a visual project management system.
+- You want an at-a-glance way to understand where a project stands.
+- You’re not on an engineering, product, or software development team.
+- You run ongoing processes and projects.
+- Most of your work isn’t produced in short periods of time.
+
+Scrum is right for you is if:
+- You’re on an engineering, product, software development, or Agile-based team.
+- You think your team could benefit from a slightly more rigid structure.
+- You have a large backlog of work to get through.
+- Your team is motivated by quick deadlines and deliverables.
+- Someone on your team is committed to being the Scrum master.
+
+Scrum can be combined with Kanban boards
+
+Teams that run Scrum on Kanban boards (or, as they’re sometimes called, Scrum boards), frequently create a new board for every Scrum sprint. The reason for this is twofold:
+- Teams that create new boards for every sprint can start with a clean slate. This makes it easier for the Scrum master and Scrum team to visualize the new work they have to do for each sprint.
+- Scrum masters use past Scrum boards to track what work was accomplished during each Scrum cycle. Since a big reason teams implement Scrum is process improvement and efficiency, it can be helpful to look back and see what you’ve accomplished.
 
 # PostgreSQL Questions
 
@@ -3874,11 +4169,11 @@ The Write-Ahead Logging feature is used to enhance the reliability of the databa
 There are four levels of transaction isolation used in SQL standard regarding three phenomena that must be prevented between concurrent transactions in PostgreSQL. These three unwanted phenomena are as follows:
 
 - Dirty read: A transaction is called a dirty read when it reads data written by a concurrent uncommitted transaction.
-  ![img.png](img.png)
+  ![img.png](images/img.png)
 - Non-repeatable read: It specifies a transaction that re-reads the data it has previously read and then finds another transaction that has already modified it.
-  ![img_1.png](img_1.png)
+  ![img_1.png](images/img_1.png)
 - Phantom read: It specifies a transaction that re-executes a query, returning a set of rows that satisfy a search condition and then finds that the set of rows satisfying the condition has changed due to another recently-committed transaction.
-  ![img_2.png](img_2.png)
+  ![img_2.png](images/img_2.png)
 - serialization anomaly: The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.
 
 ## Database normalization forms
