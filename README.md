@@ -4210,6 +4210,24 @@ For a dependency A->B, if for a single value, A, multiple values of B exist, the
 
 More info -> https://habr.com/ru/post/254773/
 
+## PostgreSQL vs MySQL
+
+The Critical Differences of Postgres vs MySQL:
+- PostgreSQL is a feature-rich database that can handle complex queries and massive databases.
+- MySQL is a simpler database that’s fast, reliable, well-understood, and easy to set up and manage.
+- PostgreSQL is an object-relational database (ORDBMS) with features like table inheritance and function overloading, whereas MySQL is a pure relational database (RDBMS).
+
+Difference table:
+
+| Factor               | PostgreSQL                                                                                                      | MySQL                                                         |
+|----------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| Architecture         | Object-relational; multiprocess                                                                                 | Relational; single process                                    |
+| Supported Data Types | Numeric Date/time Character JSON Boolean Enumerated XML Geometric Arrays Ranges Network address HSTOREComposite | Numeric Date/time Character JSON Spatial                      |
+| Supported Indexes    | B-tree Hash GiST SP-GiST GIN BRIN                                                                               | B-tree Hash R-tree Inverted indexes                           |
+| Security             | Handles a high volume of reads and writes well                                                                  | Handles a high volume of reads well                           |
+| Performance          | Access control Multiple encrypted options                                                                       | Access control Encrypted options                              |
+| Technical Support    | Community support Paid support available from certain vendors                                                   | Community support Paid support available from certain vendors |
+
 # Common Questions
 
 ## Soft-Skills
