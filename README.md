@@ -3380,6 +3380,8 @@ Useful topic -> https://www.javatpoint.com/python-memory-management
 
 # Cross-discipline questions:
 
+Interesting useful article -> https://github.com/donnemartin/system-design-primer/blob/master/README.md
+
 ## Design patterns Cheetsheet
 
 Source: http://www.celinio.net/techblog/?p=65
