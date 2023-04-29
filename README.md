@@ -3839,6 +3839,23 @@ The five values of XP are communication, simplicity, feedback, courage, and resp
 - On-site Customer
 - Coding Standard
 
+## Redis vs RabbitMQ
+
+RabbitMQ is a known open source message queue solution, written in Erlang OTP, a technology designed to build stable, reliable, fault tolerant, and highly scalable systems. It helps the systems to possess native capabilities of handling numerous concurrent operations. The extensible message queue is a message broker that supports AMQP (Advanced Message Queuing Protocol). Moreover, it is reliable with other messaging solutions like MQTT too.
+Enabling RabbitMQ at a very very high level allows different services in your application to communicate with each other without worrying about message loss when fulfilling different quality of service (QoS) requirements. It also enables messages to be routed accurately and efficiently and enables applications to be largely separated.
+
+Redis or Remote Dictionary Server is an advanced NoSQL key value data store. It is used as a database, cache, and messaging medium. It is popular because of its read and writes operations, rich data types, and advanced memory structure. With the help of Redis, you can develop high performance and scalable web applications.
+It is often called a data structure server due to its key contain strings, hashes, lists, sets, sort sets, bitmaps, etc. It has the capability of storing the data in memory as well as on the desk or written back to the memory. Organizations that use Redis are Twitter, Github, Instagram, Pinterest, and Snapchat.
+
+RabbitMQ vs Redis - Differences Between Message Brokers 
+- RabbitMQ is designed as a dedicated message broker, whereas Redis is a database that you can use as a message broker. Mostly, RabbitMQ outperforms Redis and guarantees message delivery with the help of message durability and acknowledgments.
+- While using Redis’s pub or sub mechanism, it does not guarantee message delivery. It means that if you are not active, you will not receive the message you are subscribed to. On the other hand, RabbitMQ supports persistent messages and is meant for providing reasonable high throughput in most situations without configurations. Moreover, since Redis is an in memory data store, it does not support persistent messages.
+- RabbitMQ allows you to have an extra layer of security by using SSL certificates to encrypt your data. However, Redis does not support SSL natively. You need to opt for a paid service if you want to enable SSL.
+- In RabbitMQ, producers should specify the type while publishing the message to an exchange. On the contrary, producers can either choose Literal Channel or Pattern Match Channel while publishing the message.
+- You can send up to 50K messages per second in RabbitMQ, while in Redis you can scale up to million messages per second.
+- It outperforms clustering by supporting clustering.
+- Both point to point and pub sub messaging are supported by RabbitMQ. However, it is not supported by Redis.
+
 
 ## Security related questions
 

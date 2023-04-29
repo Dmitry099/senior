@@ -18,7 +18,7 @@ test_frozen_set = frozenset([1, "f", 3])
 # Stings - immutable, only unicode characters inside
 test_string = "ABCDEFG"
 
-# Dictionary - mutable, only hashable objects inside
+# Dictionary - mutable, only hashable objects as keys
 # Complexity O(1) because it's using hashmap for operations
 # (insert,update, delete)
 test_dict = {'1': 1, 2: 'Hello'}
