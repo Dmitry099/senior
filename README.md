@@ -4276,35 +4276,43 @@ There are four levels of transaction isolation used in SQL standard regarding th
   ![img_2.png](images/img_2.png)
 - serialization anomaly: The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.
 
+PostgreSQL isolation levels:
+
+![img.png](isolation_levels.png)
+
 ## Database normalization forms
 Normalization is the process of organizing data in a database. The main purpose of normalization is to reduce redundancy. Normalization divides the master table into smaller tables and links them.
 
 Types of normalization
-First normal form (1NF)
-Second normal form (2NF)
-Third normal form (3NF)
-Boyce-Codd normal form (BCNF)
-Fourth normal form (4NF)
+- First normal form (1NF)
+- Second normal form (2NF)
+- Third normal form (3NF)
+- Boyce-Codd normal form (BCNF)
+- Fourth normal form (4NF)
 
-First normal form
+### First normal form
 A relation is in the first normal form if it contains an atomic value.
 First normal form does not allow a multi-valued trait, a compound trait, and their combinations.
 We cannot have multiple values in first normal form.
-Second normal form
+
+### Second normal form
 A table is in second normal form if:
 
 The table should be in first normal form.
 No non-prime attribute is dependent on the proper subset of any candidate key of the table. This is called partial dependency.
 Second normal form should not have any partial dependencies.
-Third normal form
+
+### Third normal form
 A table is in third normal form if:
 
 The table should be in second normal form.
 Transitive functional dependency of non-prime attributes on any super key should be removed.
-Boyce-Codd normal form
+
+### Boyce-Codd normal form
 A table complies with BCNF if it is in 3NF and for every functional dependency X->Y, X should be a super key of the table.
 BCNF is the advanced version of 3NF and is stronger than 3NF.
-Fourth normal form
+
+### Fourth normal form
 A relation is in fourth normal form if it is in BCNF and has no multi-valued dependencies.
 For a dependency A->B, if for a single value, A, multiple values of B exist, then the relation is a multi-valued dependency.
 
