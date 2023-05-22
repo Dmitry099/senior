@@ -1239,7 +1239,46 @@ if __name__ == "__main__":
 ```
 If now we want to add a new operation e.g.: median, we will only need to add a class “Median” inheriting from the class “Operations”. The newly formed sub-class will be immediately picked up by __subclasses__() and no modification in any other part of the code needs to happen.
 ###The Liskov substitution principle:
-"Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it." See also design by contract.Alternatively, this can be expressed as “Derived classes must be substitutable for their base classes”. In (maybe) simpler words, if a subclass redefines a function also present in the parent class, a client-user should not be noticing any difference in behaviour, and it is a substitute for the base class. For example, if you are using a function and your colleague change the base class, you should not notice any difference in the function that you are using. If in a subclass, you redefine a function that is also present in the base class, the two functions ought to have the same behaviour. This, though, does not mean that they must be mandatorily equal, but that the user, should expect that the same type of result, given the same input.
+"Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it." See also design by contract.The Liskov substitution principle states that a child class must be substitutable for its parent class. Liskov substitution principle aims to ensure that the child class can assume the place of its parent class without causing any errors.
+Consider the following example:
+
+```python
+class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def set_width(self, width):
+        self.width = width
+
+    def set_height(self, height):
+        self.height = height
+
+    def get_area(self):
+        return self.width * self.height
+
+class Square(Rectangle):
+    def set_width(self, width):
+        self.width = self.height = width
+
+    def set_height(self, height):
+        self.width = self.height = height
+
+def use_it(rc):
+    w = rc.width
+    rc.set_height(10)
+    assert rc.get_area() == w * 10
+
+rc = Rectangle(2, 3)
+use_it(rc)
+
+sq = Square(5)
+use_it(sq)
+```
+
+In this example, the Rectangle class defines the behavior for rectangles, and the Square class inherits from it and represents squares. The use_it function uses a rectangle-like object, such as a Rectangle or a Square, to calculate its area. The function calls the set_height method and then asserts that the area is correct.
+When we pass a Rectangle object to use_it, it works as expected and the assertion is true. When we pass a Square object to use_it, it also works and the assertion is true, even though the Square class overrides the behavior of the set_width and set_height methods. This means that the Square class is a subtype of the Rectangle class, and objects of the Square class can be used wherever objects of the Rectangle class are expected, without affecting the correctness of the program. This adheres to the Liskov Substitution Principle.
+
 ###The interface segregation principle:
 "Many client-specific interfaces are better than one general-purpose interface." In the contest of classes, an interface is considered, all the methods and properties “exposed”, thus, everything that a user can interact with that belongs to that class. In this sense, the IS principles tell us that a class should only have the interface needed (SRP) and avoid methods that won’t work or that have no reason to be part of that class. This problem arises, primarily, when, a subclass inherits methods from a base class that it does not need.
 Let’s see an example:
@@ -2011,6 +2050,14 @@ The special attribute `__slots__` allows you to explicitly state which instance 
 
 The space savings is from Storing value references in slots instead of __dict__.
 
+The Python documentation states that any non-string iterable can be used for the __slots__ declaration. For example, it is possible to use a list, and a user might want to take advantage of the fact that a list is mutable, whereas a tuple is not. It is possible to do so, but keep in mind two key points:
+
+- __slots__ is a class variable. If you have more than one instance of your class, any change made to __slots__ will show up in every instance.
+
+- You cannot access the memory allocated by the __slots__ declaration by using subscription. You will get only what is currently stored in the list.
+
+
+
 Denying `__dict__` and `__weakref__` creation if parent classes deny them and you declare `__slots__`.
 
 Small caveat, you should only declare a particular slot one time in an inheritance tree. For example:
@@ -2454,9 +2501,16 @@ When the GC starts, it has all the container objects it wants to scan on the fir
 Every object that supports garbage collection will have an extra reference count field initialized to the reference count (gc_ref in the figures) of that object when the algorithm starts. This is because the algorithm needs to modify the reference count to do the computations and in this way the interpreter will not modify the real reference count field.
 The GC then iterates over all containers in the first list and decrements by one the gc_ref field of any other object that container is referencing. Doing this makes use of the tp_traverse slot in the container class (implemented using the C API or inherited by a superclass) to know what objects are referenced by each container. After all the objects have been scanned, only the objects that have references from outside the “objects to scan” list will have gc_ref > 0.
 Notice that an object that was marked as “tentatively unreachable” and was later moved back to the reachable list will be visited again by the garbage collector as now all the references that that object has need to be processed as well. This process is really a breadth first search over the object graph. Once all the objects are scanned, the GC knows that all container objects in the tentatively unreachable list are really unreachable and can thus be garbage collected.
-## recommendations for GC usage	
 
-General rule: Don’t change garbage collector behavior
+## recommendations for GC usage	
+You can modify using of GC. For example, you can disable it if needs.
+
+```python
+import gc
+gc.disable()
+```
+
+However, general rule: Don’t change garbage collector behavior
 
 ## Memory leaks/deleters issues
 
@@ -2645,6 +2699,135 @@ if (!PyEval_ThreadsInitialized())
 }
 ...
 ```
+## Race conditions in Python
+
+###What are Race Conditions?
+When we are using multiple threads in our program, we need to be careful in how they interact with each other. When multiple threads share a resource, such as a variable there can be synchronization problems.
+
+For example, let’s say we have a “variable x” with a value of hundred. If there are two threads reading data from “x”, then there is no problem. This is perfectly safe as the value of “x” is not being modified in any way.
+However, when either one of the two threads, or maybe even both, attempt to modify the value of “x” a synchronization problem known as a “race condition” can occur.
+![img.png](images/race_cond.png)
+In the above diagram, we are illustrating how two threads are attempting to access and modify the value of “x” by adding/subtracting 10 to/from it. Can you guess what the possible answer will be?
+
+The answer is that there are actually three possible answers, out of which only one is the “correct answer”. The three possible values of X after both threads have finished execution.
+
+###How do Race Conditions occur?
+Before we discuss how this occurs, you need to understand that even a simple operation like X = X + 10, comprises of multiple instructions.
+
+We can break down the above operation into three instructions.
+
+Read the value of X and store it in a register
+Add 10 into the value in the register
+Update the value of X
+With this knowledge in mind, let’s discuss how it’s possible for the value of “x” to be 90. (In the earlier example with two threads)
+Initial value of X is 100
+Thread#1 reads the value 100 and saves it locally
+Thread#1 updates local value to 110
+Thread#2 reads the value 100 and saves it locally
+Thread#1 updates X with the value 110
+Thread#2 updates local value to 90
+Thread#2 updates X with the value 90
+
+Hence, the final answer is 90. The answers vary because there is no fixed order to how the above events execute. If step4 occurs after step5, the final answer will be 100 for example.
+
+###Race Conditions in Python – Example
+Here is an actual example where we can observe race conditions removing the output.
+The code features two functions. Function# 1 increments by one the variable “x” 1000000 times. Function#2 decrements the variable “x” 1000000 times. If we call both functions, the final answer should be logically be zero right? Let’s see what happens.
+
+```python
+from threading import Thread, Semaphore
+from time import sleep
+ 
+x = 0
+ 
+def add_one():
+    global x
+    for i in range(1000000):
+        x += 1
+ 
+def subtract_one():
+    global x
+    for i in range(1000000):
+        x -= 1     
+ 
+thread1 = Thread(target=add_one)
+thread2 = Thread(target=subtract_one)
+ 
+thread1.start()
+thread2.start()
+ 
+thread1.join()
+thread2.join()
+ 
+print(x)
+```
+We ran the code 5 times, and listed down the outputs below. As expected, they do not give us the right answer.
+
+```
+-13497
+-230960
+153609
+-445308
+106004
+```
+There is actually a very miniscule 0.00001% something chance of getting the right answer here if we run the code enough times.
+
+Note: We had the increase the number of iterations significantly otherwise thread#1 would have completed it’s execution before thread#2 even began executing. Modern computers are very fast after all!
+
+###Preventing Race Conditions with Thread Locks
+Let’s take a look at the previous code example and implement locks to get the correct answer.
+
+```python
+from threading import Thread, Lock
+from time import sleep
+ 
+lock = Lock()
+x = 0
+ 
+def add_one(lock):
+    global x
+    for i in range(1000000):
+        lock.acquire()
+        x = x + 1
+        lock.release()
+ 
+def subtract_one(lock):
+    global x
+    for i in range(1000000):
+        lock.acquire()
+        x = x - 1     
+        lock.release()
+ 
+thread2 = Thread(target=subtract_one, args = (lock,))
+thread1 = Thread(target=add_one, args = (lock,))
+ 
+thread1.start()
+thread2.start()
+ 
+thread1.join()
+thread2.join()
+ 
+print(x)
+```
+
+The above code features three main components.
+
+First is the Lock Class, used to create a lock. This “lock” serves as a sort of “permission slip”. In order to access the shared resource “x”, a thread needs this permission slip, so it tries to acquire() it. If no-one is currently using the permission slip, it will acquire() it successfully otherwise it needs to wait until the other thread releases() it.
+
+More info -> https://www.pythonpool.com/python-threading-lock/
+
+###Understanding race conditions and GIL
+Due to the GIL, there is only ever one thread per process active to execute Python bytecode; the bytecode evaluation loop is protected by it.
+The lock is released every sys.getswitchinterval() seconds, at which point a thread switch can take place. This means that for Python code, a thread switch can still take place, but only between byte code instructions. Any code that relies on thread safety needs to take this into account. Actions that can be done in one bytecode can be thread safe, everything else is not.
+Even a single byte code instruction can trigger other Python code; for example the line object[index] can trigger a __getitem__ call on a custom class, implemented itself in Python. Thus a single BINARY_SUBSCR opcode is not necessarily thread safe, depending on the object type.
+
+
+###Race conditions and reference counting
+The problem was that this reference count variable needed protection from race conditions where two threads increase or decrease its value simultaneously. If this happens, it can cause either leaked memory that is never released or, even worse, incorrectly release the memory while a reference to that object still exists. This can cause crashes or other “weird” bugs in your Python programs.
+This reference count variable can be kept safe by adding locks to all data structures that are shared across threads so that they are not modified inconsistently.
+But adding a lock to each object or groups of objects means multiple locks will exist which can cause another problem—Deadlocks (deadlocks can only happen if there is more than one lock). Another side effect would be decreased performance caused by the repeated acquisition and release of locks.
+The GIL is a single lock on the interpreter itself which adds a rule that execution of any Python bytecode requires acquiring the interpreter lock. This prevents deadlocks (as there is only one lock) and doesn’t introduce much performance overhead. But it effectively makes any CPU-bound Python program single-threaded.
+
 
 ## Async generators, async for
 An asynchronous generator is a coroutine that uses the yield expression.Unlike a function generator, the coroutine can schedule and await other coroutines and tasks.
@@ -3114,6 +3297,20 @@ new_user.save()
 # for retrieving data we have to use objects property (https://docs.djangoproject.com/en/2.1/topics/db/managers/) 
 User.objects.first() # <User: User object>
 ```
+
+## ORM using advantages and disadvantages
+
+Here are some of the advantages of using an ORM tool:
+
+- It speeds up development time for teams as it's easier to use ORM rather than RawSQL
+- Handles the logic required to interact with databases
+- Improves security. ORM tools are built to eliminate the possibility of SQL injection attacks.
+- You write less code when using ORM tools than with SQL.
+
+Disadvantages of Using ORM Tools
+- ORMs are slow  They generate query and pass that to the database what so ever. And often they just don't return a simple looking array . They return collections that are too long containing all sort of information that you will never need, eating away all the RAMS .
+- ORMs are not good when the query or business logic if you may, become complex. Sure you can handle on query level. But you just don't know how to write it in ORM. Its possible and it happens quite often .
+
 
 ## Migrations, what are they needed for? Overview of Tools (Alembic, Django Migration)
 Here are a few ways Django migrations make your life easier:
@@ -3588,8 +3785,21 @@ I/O Bound, Fast I/O, Limited Number of Connections => Multi Threading
 
 I/O Bound, Slow I/O, Many connections => Asyncio
 
-4. Event loop – how it works. Виды многозадачности  
-5. SQL vs noSQL databases
+
+More difference for MultiThreading and Asyncio:
+
+| Area | Asyncio | Threading |
+|Task Types|I/O Bound, Slow I/O, Many connections|I/O Bound, Fast I/O, Limited Number of Connections|
+|Multitasking type|Cooperative multitasking|Preemptive multitasking|
+|Cost of using|Cost less than thread|Cost more than coroutine|
+|   Code Design   |   Coroutines, Event Loop      |   Multiple Threads        |
+|  Debugging    |  Can be less challenging than threading       |   Can be challenging        |
+|  Ease of Use    |  Can be more complex than threading       |    Can be easier to understand and implement       |
+|  Synchronization Primitives    |     Coroutines and event loops    |    Locks and semaphores       |
+|  Profiling Tools	    |     Built-in profiler, cProfile	    |    cProfile       |
+|  Third-party Libraries	    |     aiohttp, uvloop, curio, trio	    |    N/A       |
+
+
 ## Mmap
 
 In computing, mmap(2) is a POSIX-compliant Unix system call that maps files or devices into memory. It is a method of memory-mapped file I/O. It implements demand paging because file contents are not read from disk directly and initially do not use physical RAM at all. The actual reads from disk are performed in a "lazy" manner, after a specific location is accessed. After the memory is no longer needed, it is important to munmap(2) the pointers to it. Protection information can be managed using mprotect(2), and special treatment can be enforced using madvise(2).
@@ -4106,6 +4316,29 @@ Each sprint goes through the following phases:
 3. During the sprint, Agile teams meet frequently to discuss blockers and action items. 
 4. Once the sprint is over, team members get together to run a sprint retrospective and identify what went well and what could have been better. 
 
+####Estimation in Agile
+Agile estimation estimates your effort to complete a prioritized task in the product backlog. We measure it for the time it would take to complete that task. As a result, you can plan sprints more accurately.
+
+We have 8 techinces for example, but you should know that you can create your own technique. Only one important thing that you should understand for you technique real difference between several estimations (like S and M or 3 and 5, etc.)
+
+1. Three-point estimate
+The problem with committing to an estimate before any work begins is that they can be wildly inaccurate. Even if it’s the same team and the same type of work, estimates can be unrealistic. Especially if you fall into the trap of thinking, “We’ve done this before so we’ll be much faster the second time.”
+2. Planning poker
+Best for a small number of items, planning poker is a useful technique that gets unanimous buy-in quickly. Each team member gets a set of specially numbered cards, discusses the requirements for the item, and then submits their best estimate anonymously. Discussion happens until consensus is reached.
+3. Affinity grouping
+This estimation approach works by having team members group similar items. If tasks seem related in scope and effort, you put them together until you have a clear set of groups.
+4. Random distribution
+Also known as an ordering protocol, this technique places items in an order from low to high. Each person takes a turn, choosing either to move an item up or down one spot, discussing an item, or passing.
+5. T-shirt sizes (Estimation units)
+XS, S, M, L, XL are the units you’ll use to estimate Agile projects for this technique. One of the reasons this approach is successful is because it’s a departure from standard units of time, and thus, can help teams think more critically.
+6. Buckets
+Similar to planning poker, the bucket technique aims for consensus through discussion, and by assigning values to each task. The facilitator starts with one task, sets it in the middle, and then continues to read and place tasks in buckets relative to the first one. The team can divide up tasks and bucket them, before coming back together and reviewing.
+7. Large, small, uncertain
+Fast, simple, and productive, this technique is like bucketing but with only three possible values to assign. You’ll start out discussing, and then divide and conquer to get all the tasks added to the large, small, or uncertain groups.
+8. Dot voting
+This one is fairly simple: each person gets a number of dots and uses them to vote on which projects are big and small. More dots mean more time and effort is required. Fewer dots indicate a fairly straightforward and quick item.
+
+
 ###What is Kanban
 Kanban is a subsect of the Agile methodology and functions within the broader Agile mentality. The Agile philosophy is all about adaptive planning, early delivery, and continuous improvement—all of which Kanban can support.
 
@@ -4179,7 +4412,6 @@ While the two have some things in common, there are a few major differences betw
 Kanban is right for you is if:
 - Your team needs a visual project management system.
 - You want an at-a-glance way to understand where a project stands.
-- You’re not on an engineering, product, or software development team.
 - You run ongoing processes and projects.
 - Most of your work isn’t produced in short periods of time.
 
@@ -4195,6 +4427,30 @@ Scrum can be combined with Kanban boards
 Teams that run Scrum on Kanban boards (or, as they’re sometimes called, Scrum boards), frequently create a new board for every Scrum sprint. The reason for this is twofold:
 - Teams that create new boards for every sprint can start with a clean slate. This makes it easier for the Scrum master and Scrum team to visualize the new work they have to do for each sprint.
 - Scrum masters use past Scrum boards to track what work was accomplished during each Scrum cycle. Since a big reason teams implement Scrum is process improvement and efficiency, it can be helpful to look back and see what you’ve accomplished.
+
+## NoSQL vs SQL
+
+###What is NoSQL?
+NoSQL stands for Not only SQL. It is a type of database that uses non-relational data structures, such as documents, graph databases, and key-value stores to store and retrieve data. NoSQL systems are designed to be more flexible than traditional relational databases and can scale up or down easily to accommodate changes in usage or load. This makes them ideal for use in applications
+
+###Why NoSQL is Used Over SQL
+NoSQL is preferred over SQL in many cases because it offers more flexibility and scalability. The primary benefit of using a NoSQL system is that it provides developers with the ability to store and access data quickly and easily, without the overhead of a traditional relational database. As a result, development teams can focus on delivering features and core business logic faster, without worrying about the underlying data storage implementation. 
+
+###Which is better SQL or NoSQL?
+The decision of which type of database to use - SQL or NoSQL - will depend on the particular needs and requirements of the project. For example, if you need a fast, scalable, and reliable database for web applications then a NoSQL system may be preferable. On the other hand, if your application requires complex data queries and transactional support then an SQL system may be the better choice. Ultimately, there is no one-size-fits-all solution - it all comes down to what you need from your database and which type of system can provide that in the most efficient manner. It's best to research both options thoroughly before making a decision.
+Below, learn in-depth about the most important distinctions between SQL vs NoSQL databases and the best systems available on the market.
+
+| SQL | NoSQL |
+|Stands for Structured Query Language|Stands for Not Only SQL|
+|  Relational database management system (RDBMS)   |   Non-relational database management system    |
+|  Suitable for structured data with predefined schema   |   Suitable for unstructured and semi-structured data    |
+|  Data is stored in tables with columns and rows   |   Data is stored in collections or documents    |
+|  Follows ACID properties (Atomicity, Consistency, Isolation, Durability) for transaction management   |   Does not necessarily follow ACID properties    |
+|  Supports JOIN and complex queries   |   Does not support JOIN and complex queries    |
+|   Uses normalized data structure  |   Uses denormalized data structure    |
+|   Requires vertical scaling to handle large volumes of data  |   Horizontal scaling is possible to handle large volumes of data    |
+|   Examples: MySQL, PostgreSQL, Oracle, SQL Server, Microsoft SQL Server  |   Examples: MongoDB, Cassandra, Couchbase, Amazon DynamoDB, Redis    |
+
 
 # PostgreSQL Questions
 
@@ -4278,7 +4534,7 @@ There are four levels of transaction isolation used in SQL standard regarding th
 
 PostgreSQL isolation levels:
 
-![img.png](isolation_levels.png)
+![img.png](images/isolation_levels.png)
 
 ## Database normalization forms
 Normalization is the process of organizing data in a database. The main purpose of normalization is to reduce redundancy. Normalization divides the master table into smaller tables and links them.
