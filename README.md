@@ -2258,7 +2258,55 @@ async def main():
 asyncio.run(main())
 ```
 
-# Unit testing in Python	
+# Unit testing in Python
+
+## Testing pyramid
+
+![img.png](testing_pyramid.png)
+
+The testing pyramid, also known as the test automation pyramid, essentially describes the test types that the development and QA teams should incorporate in an automated test suite. Moreover, it defines the order and frequency of such assessments. The purpose is to provide rapid feedback to ensure that code changes do not impact existing functionality.
+
+Test automation pyramid functions at three levels:
+- Unit tests
+- Integration tests
+- End-to-end tests
+
+Unit tests
+Unit testing serves as the foundation of the test pyramid. Unit tests have a limited scope and ensure that isolated code units function as expected. Unit tests should assess a single variable and not rely on external dependencies.
+The team has to execute pre- and post-commit tests in this pyramid layer, and tests happen to be dev-triggered.
+
+Integration Test
+The integration test is the second step of the software testing pyramid. Unit tests check small portions of a codebase. The Dev team should perform integration tests to verify the interaction of this code with other codes in the application, which generally comprise the overall software. These tests check how a code interacts with external components. These components may include external services(APIs), databases, web services, and similar elements. Integration tests ensure that the software communicates efficiently and retrieves accurate data to perform as expected.
+Integration tests are generally slower than unit tests due to the necessity of interaction with external sources. They also require a pre-production environment to run.
+It is essential to have the right balance of virtual and real devices for running tests in integration testing.
+
+End-to-end Tests
+End-to-end testing checks the enormous bulk of code (the entire application). It uses a test environment and data to simulate real-world functionality. It is the most expensive to maintain and has the slowest operating pace. As this test checks assembled applications, it is also the most difficult to identify issues.
+The ideal method to approach end-to-end testing is from the end-users perspective. Testers might consider facts like different ways an end-user might engage with the app, what they would do to achieve their objectives with the app, and what might go wrong. The aim is to develop a test based on such actions.
+
+
+## Clean code with Unit tests - F.I.R.S.T.
+FIRST is an acronym that you should always remember if you want to write clean and extensible tests.
+
+This acronym tells us that Unit Tests should be Fast, Independent, Repeatable, Self-validating, and Thorough.
+
+###Fast
+You should not create tests that require a long time for setup and start-up: ideally, you should be able to run the whole test suite in under a minute.
+
+###Independent (or Isolated)
+Test methods should be independent of one another.
+
+###Repeatable
+Unit Tests should be repeatable. This means that wherever and whenever you run them, they should behave correctly.
+
+###Self-validating
+Self-validating means that a test should perform operations and programmatically check for the result.
+For instance, if you’re testing that you’ve written something on a file, the test itself is in charge of checking that it worked correctly. No manual operations should be done.
+
+###Thorough
+Unit Tests should be thorough in that they must validate both the happy paths and the failing paths.
+So you should test your functions with valid inputs and with invalid inputs.
+
 ## Compare common test frameworks (e.g unittest, pytest, robot framework)
 Pytest is a testing framework based on Python. Pytest is now popular because it’s easy-to-use fixtures. Pytest is mostly used for API testing, also we can use Pytest for simple as well as complex tests, that is, you can write test cases to test APIs, database, etc.
 Which is better – pytest or unittest?
@@ -3308,7 +3356,7 @@ Here are some of the advantages of using an ORM tool:
 - You write less code when using ORM tools than with SQL.
 
 Disadvantages of Using ORM Tools
-- ORMs are slow  They generate query and pass that to the database what so ever. And often they just don't return a simple looking array . They return collections that are too long containing all sort of information that you will never need, eating away all the RAMS .
+- ORMs are slow. They generate query and pass that to the database what so ever. And often they just don't return a simple looking array . They return collections that are too long containing all sort of information that you will never need, eating away all the RAMS .
 - ORMs are not good when the query or business logic if you may, become complex. Sure you can handle on query level. But you just don't know how to write it in ORM. Its possible and it happens quite often .
 
 
@@ -4065,6 +4113,53 @@ RabbitMQ vs Redis - Differences Between Message Brokers
 - You can send up to 50K messages per second in RabbitMQ, while in Redis you can scale up to million messages per second.
 - It outperforms clustering by supporting clustering.
 - Both point to point and pub sub messaging are supported by RabbitMQ. However, it is not supported by Redis.
+
+
+## REST API principles
+
+REST is an acronym for REpresentational State Transfer and an architectural style for distributed hypermedia systems. Roy Fielding first presented it in 2000 in his famous dissertation.
+Like other architectural styles, REST has its guiding principles and constraints. These principles must be satisfied if a service interface needs to be referred to as RESTful.
+
+The six guiding principles or constraints of the RESTful architecture are:
+### Uniform Interface
+By applying the principle of generality to the components interface, we can simplify the overall system architecture and improve the visibility of interactions.
+Multiple architectural constraints help in obtaining a uniform interface and guiding the behavior of components.
+
+### Client-Server
+The client-server design pattern enforces the separation of concerns, which helps the client and the server components evolve independently.
+By separating the user interface concerns (client) from the data storage concerns (server), we improve the portability of the user interface across multiple platforms and improve scalability by simplifying the server components.
+While the client and the server evolve, we have to make sure that the interface/contract between the client and the server does not break.
+
+###Stateless
+Statelessness mandates that each request from the client to the server must contain all of the information necessary to understand and complete the request.
+The server cannot take advantage of any previously stored context information on the server.
+For this reason, the client application must entirely keep the session state.
+
+###Cacheable
+The cacheable constraint requires that a response should implicitly or explicitly label itself as cacheable or non-cacheable.
+If the response is cacheable, the client application gets the right to reuse the response data later for equivalent requests and a specified period.
+
+###Layered System
+The layered system style allows an architecture to be composed of hierarchical layers by constraining component behavior.
+For example, in a layered system, each component cannot see beyond the immediate layer they are interacting with.
+
+###Code on Demand (Optional)
+REST also allows client functionality to extend by downloading and executing code in the form of applets or scripts.
+The downloaded code simplifies clients by reducing the number of features required to be pre-implemented. Servers can provide part of features delivered to the client in the form of code, and the client only needs to execute the code.
+
+
+###REST and HTTP are Not the Same
+Many people prefer to compare HTTP with REST. REST and HTTP are not the same.
+REST != HTTP
+Though REST also intends to make the web (internet) more streamlined and standard, Roy Fielding advocates using REST principles more strictly. And that’s from where people try to start comparing REST with the web.
+Roy Fielding, in his dissertation, has nowhere mentioned any implementation direction – including any protocol preference or even HTTP. Till the time, we are honoring the six guiding principles of REST, which we can call our interface – RESTful.
+
+In simple words, in the REST architectural style, data and functionality are considered resources and are accessed using Uniform Resource Identifiers (URIs).
+The resources are acted upon by using a set of simple, well-defined operations. Also, the resources have to be decoupled from their representation so that clients can access the content in various formats, such as HTML, XML, plain text, PDF, JPEG, JSON, and others.
+The clients and servers exchange representations of resources by using a standardized interface and protocol. Typically HTTP is the most used protocol, but REST does not mandate it.
+Metadata about the resource is made available and used to control caching, detect transmission errors, negotiate the appropriate representation format, and perform authentication or access control.
+And most importantly, every interaction with the server must be stateless.
+All these principles help RESTful applications to be simple, lightweight, and fast.
 
 
 ## Security related questions
