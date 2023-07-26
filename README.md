@@ -3833,19 +3833,25 @@ I/O Bound, Fast I/O, Limited Number of Connections => Multi Threading
 
 I/O Bound, Slow I/O, Many connections => Asyncio
 
+Interesting fact:
+You should know that you can't delete files asynchronously as in Windows and Unix the removal operation is synchronous. 
+In practice it means you'll have to spawn a thread to handle the operation concurrently with your main Thread.
+Anyway asynchronous library `aiofiles` helps with this by introducing asynchronous versions of files that support delegating operations to a separate thread pool.
 
 More difference for MultiThreading and Asyncio:
 
-| Area | Asyncio | Threading |
-|Task Types|I/O Bound, Slow I/O, Many connections|I/O Bound, Fast I/O, Limited Number of Connections|
-|Multitasking type|Cooperative multitasking|Preemptive multitasking|
-|Cost of using|Cost less than thread|Cost more than coroutine|
-|   Code Design   |   Coroutines, Event Loop      |   Multiple Threads        |
-|  Debugging    |  Can be less challenging than threading       |   Can be challenging        |
-|  Ease of Use    |  Can be more complex than threading       |    Can be easier to understand and implement       |
-|  Synchronization Primitives    |     Coroutines and event loops    |    Locks and semaphores       |
-|  Profiling Tools	    |     Built-in profiler, cProfile	    |    cProfile       |
-|  Third-party Libraries	    |     aiohttp, uvloop, curio, trio	    |    N/A       |
+| Area                       | Asyncio                                | Threading                                          |
+|----------------------------|----------------------------------------|----------------------------------------------------|
+| Task Types                 | I/O Bound, Slow I/O, Many connections  | I/O Bound, Fast I/O, Limited Number of Connections |
+| Multitasking type          | Cooperative multitasking               | Preemptive multitasking                            |
+| Cost of using              | Cost less than thread                  | Cost more than coroutine                           |
+| Code Design                | Coroutines, Event Loop                 | Multiple Threads                                   |
+| Debugging                  | Can be less challenging than threading | Can be challenging                                 |
+| Ease of Use                | Can be more complex than threading     | Can be easier to understand and implement          |
+| Synchronization Primitives | Coroutines and event loops             | Locks and semaphores                               |
+| Profiling Tools	           | Built-in profiler, cProfile	           | cProfile                                           |
+| Third-party Libraries	     | aiohttp, uvloop, curio, trio	          | N/A                                                |
+
 
 
 ## Mmap
@@ -4535,16 +4541,17 @@ NoSQL is preferred over SQL in many cases because it offers more flexibility and
 The decision of which type of database to use - SQL or NoSQL - will depend on the particular needs and requirements of the project. For example, if you need a fast, scalable, and reliable database for web applications then a NoSQL system may be preferable. On the other hand, if your application requires complex data queries and transactional support then an SQL system may be the better choice. Ultimately, there is no one-size-fits-all solution - it all comes down to what you need from your database and which type of system can provide that in the most efficient manner. It's best to research both options thoroughly before making a decision.
 Below, learn in-depth about the most important distinctions between SQL vs NoSQL databases and the best systems available on the market.
 
-| SQL | NoSQL |
-|Stands for Structured Query Language|Stands for Not Only SQL|
-|  Relational database management system (RDBMS)   |   Non-relational database management system    |
-|  Suitable for structured data with predefined schema   |   Suitable for unstructured and semi-structured data    |
-|  Data is stored in tables with columns and rows   |   Data is stored in collections or documents    |
-|  Follows ACID properties (Atomicity, Consistency, Isolation, Durability) for transaction management   |   Does not necessarily follow ACID properties    |
-|  Supports JOIN and complex queries   |   Does not support JOIN and complex queries    |
-|   Uses normalized data structure  |   Uses denormalized data structure    |
-|   Requires vertical scaling to handle large volumes of data  |   Horizontal scaling is possible to handle large volumes of data    |
-|   Examples: MySQL, PostgreSQL, Oracle, SQL Server, Microsoft SQL Server  |   Examples: MongoDB, Cassandra, Couchbase, Amazon DynamoDB, Redis    |
+| SQL                                                                                                | NoSQL                                                           |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Stands for Structured Query Language                                                               | Stands for Not Only SQL                                         |
+| Relational database management system (RDBMS)                                                      | Non-relational database management system                       |
+| Suitable for structured data with predefined schema                                                | Suitable for unstructured and semi-structured data              |
+| Data is stored in tables with columns and rows                                                     | Data is stored in collections or documents                      |
+| Follows ACID properties (Atomicity, Consistency, Isolation, Durability) for transaction management | Does not necessarily follow ACID properties                     |
+| Supports JOIN and complex queries                                                                  | Does not support JOIN and complex queries                       |
+| Uses normalized data structure                                                                     | Uses denormalized data structure                                |
+| Requires vertical scaling to handle large volumes of data                                          | Horizontal scaling is possible to handle large volumes of data  |
+| Examples: MySQL, PostgreSQL, Oracle, SQL Server, Microsoft SQL Server                              | Examples: MongoDB, Cassandra, Couchbase, Amazon DynamoDB, Redis |
 
 
 # PostgreSQL Questions
