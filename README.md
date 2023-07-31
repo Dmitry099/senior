@@ -1944,17 +1944,17 @@ z.display() # answer is Y! Because in this case X and Y class have equal parent 
 ```
 
 ```python
-class A(object):
+class A:
     def display(self):
         print('A')
 
 
-class B(object):
+class B:
     def display(self):
         print('B')
 
 
-class C(object):
+class C:
     def display(self):
         print('C')
 
