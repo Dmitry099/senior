@@ -1672,7 +1672,36 @@ s1 = Student("Santhosh")
 print(s1._Student__name)
 ```
 
-## @property(getter, setter, deleter)
+## Descriptor
+Descriptors are Python objects that implement a method of the descriptor protocol, which gives you the ability to create objects that have special behavior when they’re accessed as attributes of other objects. Here you can see the correct definition of the descriptor protocol:
+
+```python
+__get__(self, obj, type=None) -> object
+__set__(self, obj, value) -> None
+__delete__(self, obj) -> None
+__set_name__(self, owner, name)
+```
+
+If your descriptor implements just .__get__(), then it’s said to be a non-data descriptor. If it implements .__set__() or .__delete__(), then it’s said to be a data descriptor. Note that this difference is not just about the name, but it’s also a difference in behavior. That’s because data descriptors have precedence during the lookup process, as you’ll see later on.
+Take a look at the following example, which defines a descriptor that logs something on the console when it’s accessed:
+```python
+class Verbose_attribute():
+    def __get__(self, obj, type=None) -> object:
+        print("accessing the attribute to get the value")
+        return 42
+    def __set__(self, obj, value) -> None:
+        print("accessing the attribute to set the value")
+        raise AttributeError("Cannot change the value")
+
+class Foo():
+    attribute1 = Verbose_attribute()
+
+my_foo_object = Foo()
+x = my_foo_object.attribute1
+print(x)
+```
+## Python Descriptors in Properties @property(getter, setter, deleter)
+If you want to get the same result as the previous example without explicitly using a Python descriptor, then the most straightforward approach is to use a property:
 
 ```python
 class Person:
@@ -1700,6 +1729,71 @@ p.name = 'John'
 del p.name
 ```
 
+Now you can see that the property has been created by using property(). The signature of this function is as follows:
+
+```python
+property(fget=None, fset=None, fdel=None, doc=None) -> object
+```
+If you use Python 3.6 or higher, however, then the descriptor protocol has a new method .__set_name__() that does all this magic for you, as proposed in PEP 487:
+```python
+__set_name__(self, owner, name)
+```
+With this new method, whenever you instantiate a descriptor this method is called and the name parameter automatically set.
+
+## Why Use Python Descriptors?
+The first and most straightforward example is lazy properties. These are properties whose initial values are not loaded until they’re accessed for the first time. Then, they load their initial value and keep that value cached for later reuse.
+```python
+import time
+
+class LazyProperty:
+    def __init__(self, function):
+        self.function = function
+        self.name = function.__name__
+
+    def __get__(self, obj, type=None) -> object:
+        obj.__dict__[self.name] = self.function(obj)
+        return obj.__dict__[self.name]
+
+class DeepThought:
+    @LazyProperty
+    def meaning_of_life(self):
+        time.sleep(3)
+        return 42
+
+my_deep_thought_instance = DeepThought()
+print(my_deep_thought_instance.meaning_of_life)
+print(my_deep_thought_instance.meaning_of_life)
+print(my_deep_thought_instance.meaning_of_life)
+```
+
+Another typical use case for descriptors is to write reusable code and make your code D.R.Y. Python descriptors give developers a great tool to write reusable code that can be shared among different properties or even different classes.
+
+```python
+class EvenNumber:
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, obj, type=None) -> object:
+        return obj.__dict__.get(self.name) or 0
+
+    def __set__(self, obj, value) -> None:
+        obj.__dict__[self.name] = (value if value % 2 == 0 else 0)
+
+class Values:
+    value1 = EvenNumber()
+    value2 = EvenNumber()
+    value3 = EvenNumber()
+    value4 = EvenNumber()
+    value5 = EvenNumber()
+
+my_values = Values()
+my_values.value1 = 1
+my_values.value2 = 4
+print(my_values.value1)
+print(my_values.value2)
+```
+
+More info -> https://docs.python.org/3/howto/descriptor.html
 ## init,  repr, str, cmp,  new , del,  hash, nonzero, unicode, class operators
 
 - `__init__` The task of constructors is to initialize(assign values) to the data members of the class when an object of class is created.
@@ -4440,6 +4534,10 @@ Fast, simple, and productive, this technique is like bucketing but with only thr
 This one is fairly simple: each person gets a number of dots and uses them to vote on which projects are big and small. More dots mean more time and effort is required. Fewer dots indicate a fairly straightforward and quick item.
 
 
+Comparing Story Point Estimations and T-Shirt Sizing
+Both Story Point Estimations and T-Shirt Sizing are useful for estimating the amount of work required to complete a story. They're also similar in that they both use a scale from 1 to 10, with 1 being the smallest amount of effort and 10 being the largest amount of effort.
+However, there are some key differences between them: Story Point Estimations use abstract units such as "hours" or "days" while T-Shirt Sizing uses concrete units like "inches" or "pounds". This means that if you want to compare two estimates using different scales (for example, if someone gives you an estimate in hours,but you want to know how long it would take using T-shirt sizes), then you'll need some conversion factor between those two scales before doing so.
+
 ###What is Kanban
 Kanban is a subsect of the Agile methodology and functions within the broader Agile mentality. The Agile philosophy is all about adaptive planning, early delivery, and continuous improvement—all of which Kanban can support.
 
@@ -4523,11 +4621,26 @@ Scrum is right for you is if:
 - Your team is motivated by quick deadlines and deliverables.
 - Someone on your team is committed to being the Scrum master.
 
+####Limiting Work in Progress (WIP) in Scrum with Kanban
+One of the key Kanban practices is Limiting Work in Progress. If you want to be pedantic, actually what this practice aims for is Reducing and stabilizing Work in Progress. This improves flow, provides predictability, and is actually even more important for creating a pull-based Kanban system than visualizing your workflow using a Kanban board. I worked with several clients that limited their WIP but didn't use Kanban boards. One could argue that maybe this practice deserves to be first in the list of Kanban practices, ahead of Visualization.
+Anyhow, when a Scrum Team implements Kanban they should definitely figure out how to limit and reduce their Work in Progress. This is a key part of their definition of "Workflow".
+Kanban and Scrum limit WIP differently, but they both aim to limit WIP. Scrum limits WIP by only committing to work that the team thinks they can get done in a short sprint, and the PO makes sure this work is the highest value work.
+Kanban, on the other hand, limits WIP by imposing WIP limits. It’s important for Kanban teams to triage their work daily to ensure they have visibility into new items that have entered into the backlog.
+
 Scrum can be combined with Kanban boards
 
 Teams that run Scrum on Kanban boards (or, as they’re sometimes called, Scrum boards), frequently create a new board for every Scrum sprint. The reason for this is twofold:
 - Teams that create new boards for every sprint can start with a clean slate. This makes it easier for the Scrum master and Scrum team to visualize the new work they have to do for each sprint.
 - Scrum masters use past Scrum boards to track what work was accomplished during each Scrum cycle. Since a big reason teams implement Scrum is process improvement and efficiency, it can be helpful to look back and see what you’ve accomplished.
+
+
+### Retorspective templates
+We have different retrospective templates: Agile Retrospective Template, Quick Retrospective Template, Sprint Retrospective Template, Glad, Sad, Mad Template, Start, Stop, Continue Template, Sailboat Retrospective Template, 4Ls Template, Starfish Retrospective Template, Postmortem Retrospective Template
+More info -> https://www.smartsheet.com/content/retrospective-templates
+
+### Useful links about Software methodologies
+Kanban -> https://www.atlassian.com/agile/kanban
+Project Management -> https://www.atlassian.com/agile/project-management
 
 ## NoSQL vs SQL
 
